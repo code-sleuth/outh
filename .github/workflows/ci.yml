@@ -32,6 +32,9 @@ on:
       - opened
       - reopened
 
+  pull_request_target:
+    types: [ opened, reopened, synchronize ]
+
 env:
   STAGE: dev
   AWS_REGION: us-east-1
