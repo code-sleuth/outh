@@ -12,19 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Assign Reviewers
-on:
-  pull_request:
-    types: [opened, reopened]
-jobs:
-  add-reviewers:
-    environment: dev
-    if: github.event.pull_request.draft == false
-    name: Add Reviewers
-    runs-on: ubuntu-latest
-    steps:
-      - name: Auto Assign Action
-        uses: kentaro-m/auto-assign-action@v2.0.0
-        with:
-          repo-token: "${{ secrets.GH_TOKEN }}"
-          configuration-path: '.github/workflows/config/reviewers.yml'
+ci/cd:
+- changed-files:
+  - any-glob-to-any-file:
+    - ".github/**/*"
+docs:
+- changed-files:
+  - any-glob-to-any-file:
+    - "docs/**/*"
+    - "README.md"
+app-service:
+- changed-files:
+  - any-glob-to-any-file:
+    - "app-service/**/*"
+auth-service:
+- changed-files:
+  - any-glob-to-any-file:
+    - "auth-service/**/*"
+docker:
+- changed-files:
+  - any-glob-to-any-file:
+    - "app-service/Dockerfile"
+    - "auth-service/Dockerfile"
+    - "compose.override.yml"
+    - "compose.yml"

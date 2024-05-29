@@ -12,19 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Assign Reviewers
+name: Label Commenter
 on:
-  pull_request:
-    types: [opened, reopened]
+  issues:
+    types:
+      - labeled
+  pull_request_target:
+    types:
+      - labeled
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
 jobs:
-  add-reviewers:
-    environment: dev
-    if: github.event.pull_request.draft == false
-    name: Add Reviewers
+  comment:
     runs-on: ubuntu-latest
     steps:
-      - name: Auto Assign Action
-        uses: kentaro-m/auto-assign-action@v2.0.0
+      - name: Checkout repo
+        uses: actions/checkout@v4
         with:
-          repo-token: "${{ secrets.GH_TOKEN }}"
-          configuration-path: '.github/workflows/config/reviewers.yml'
+          ref:main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Label Commenter
+        uses: peaceiris/actions-label-commenter@v1.10.0
