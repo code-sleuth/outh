@@ -12,17 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-area/ci:
-    - ".github/**/*"
-area/docs:
-    - "docs/**/*"
-    - "README.md"
-app-service:
-    - "app-service/**/*"
-auth-service:
-    - "auth-service/**/*"
-docker:
-    - "app-service/Dockerfile"
-    - "auth-service/Dockerfile"
-    - "compose.override.yml"
-    - "compose.yml"
+name: PR Labeler
+on:
+    - pull_request_target
+
+jobs:
+    triage:
+        environment: dev
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/labeler@v5
+              with:
+                  repo-token: "${{ secrets.GH_TOKEN }}"

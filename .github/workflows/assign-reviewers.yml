@@ -18,6 +18,7 @@ on:
     types: [opened, reopened]
 jobs:
   add-reviewers:
+    environment: dev
     if: github.event.pull_request.draft == false
     name: Add Reviewers
     runs-on: ubuntu-latest
@@ -25,5 +26,5 @@ jobs:
       - name: Auto Assign Action
         uses: kentaro-m/auto-assign-action@v2.0.0
         with:
-          repo-token: '${{ secrets.GH_TOKEN }}'
+          repo-token: "${{ secrets.GH_TOKEN }}"
           configuration-path: '.github/workflows/config/reviewers.yml'
