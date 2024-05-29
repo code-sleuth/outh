@@ -41,6 +41,7 @@ env:
 
 jobs:
   build:
+    environment: dev
     runs-on: ubuntu-latest
 
     steps:
