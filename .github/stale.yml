@@ -12,31 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ci/cd:
-- changed-files:
-  - any-glob-to-any-file:
-    - ".github/**/*"
-docs:
-- changed-files:
-  - any-glob-to-any-file:
-    - "docs/**/*"
-    - "README.md"
-license:
-  - changed-files:
-      - any-glob-to-any-file:
-          - "LICENSE"
-app-service:
-- changed-files:
-  - any-glob-to-any-file:
-    - "app-service/**/*"
-auth-service:
-- changed-files:
-  - any-glob-to-any-file:
-    - "auth-service/**/*"
-docker:
-- changed-files:
-  - any-glob-to-any-file:
-    - "app-service/Dockerfile"
-    - "auth-service/Dockerfile"
-    - "compose.override.yml"
-    - "compose.yml"
+daysUntilStale: 30
+daysUntilClose: 10
+exemptLabels:
+  - issue/critical
+staleLabel: issue/stale
+markComment: >
+  This issue has been automatically marked as stale because it has not had
+  activity within the past 30 days.
+closeComment: >
+  This issue is being automatically closed due to no activity.
+  You may choose to reopen this issue if you're going to work on it.
