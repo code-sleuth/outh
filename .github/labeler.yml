@@ -21,6 +21,10 @@ docs:
   - any-glob-to-any-file:
     - "docs/**/*"
     - "README.md"
+license:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "LICENSE"
 app-service:
 - changed-files:
   - any-glob-to-any-file:
