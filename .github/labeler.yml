@@ -40,3 +40,7 @@ docker:
     - "auth-service/Dockerfile"
     - "compose.override.yml"
     - "compose.yml"
+makefile:
+- changed-files:
+  - any-glob-to-any-file:
+      - "Makefile"
