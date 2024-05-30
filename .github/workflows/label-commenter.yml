@@ -30,8 +30,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          ref:main
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       - name: Label Commenter
