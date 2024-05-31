@@ -53,3 +53,7 @@ deps:
   - any-glob-to-any-file:
     - "auth-service/Cargo.lock"
     - "auth-service/Cargo.toml"
+swagger/spec:
+- changed-files:
+  - any-glob-to-any-file:
+    - "auth-service/api_schema.yml"
