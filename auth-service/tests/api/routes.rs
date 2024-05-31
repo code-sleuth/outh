@@ -13,17 +13,15 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-use auth_service::Application;
 
-#[tokio::main]
-async fn main() {
-    let address = "0.0.0.0:42069";
-    let svc = Application::build(address)
-        .await
-        .expect("failed to build service");
+use crate::helpers::TestApp;
 
-    svc
-        .run()
-        .await
-        .expect("failed to run service");
+#[tokio::test]
+async fn root_returns_auth_ui(){
+    let app = TestApp::new().await;
+
+    let response = app.get_root().await;
+
+    assert_eq!(response.status().as_u16(), 200);
+    assert_eq!(response.headers().get("content-type").unwrap(), "text/html")
 }

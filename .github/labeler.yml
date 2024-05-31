@@ -44,3 +44,12 @@ makefile:
 - changed-files:
   - any-glob-to-any-file:
       - "Makefile"
+tests:
+- changed-files:
+  - any-glob-to-any-file:
+    - "auth-service/tests/**/*"
+deps:
+- changed-files:
+  - any-glob-to-any-file:
+    - "auth-service/Cargo.lock"
+    - "auth-service/Cargo.toml"

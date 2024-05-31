@@ -13,17 +13,5 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-use auth_service::Application;
-
-#[tokio::main]
-async fn main() {
-    let address = "0.0.0.0:42069";
-    let svc = Application::build(address)
-        .await
-        .expect("failed to build service");
-
-    svc
-        .run()
-        .await
-        .expect("failed to run service");
-}
+mod helpers;
+mod routes;

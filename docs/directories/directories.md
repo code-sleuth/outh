@@ -1,6 +1,7 @@
 # Directory structure of the project
 ```shell
 ├── LICENSE
+├── Makefile
 ├── README.md
 ├── app-service
 │   ├── Cargo.lock
@@ -23,11 +24,18 @@
 │   │   ├── app.js
 │   │   ├── index.html
 │   │   └── logo.webp
-│   └── src
-│       └── main.rs
+│   ├── src
+│   │   ├── lib.rs
+│   │   └── main.rs
+│   └── tests
+│       └── api
+│           ├── helpers.rs
+│           ├── main.rs
+│           └── routes.rs
 ├── compose.override.yml
 ├── compose.yml
 └── docs
+    ├── architecture
     ├── directories
     │   └── directories.md
     └── releases

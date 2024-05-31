@@ -20,6 +20,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-axum = "0.7.4"
-tokio = { version = "1.36", features = ["full"] }
-tower-http = { version = "0.5.0", features = ["fs"] }
+axum = { version = "0.7.5"}
+tokio = { version = "1.38.0", features = ["full"] }
+tower-http = { version = "0.5.2", features = ["fs"] }
+serde = { version = "1.0.198", features = ["default"]}
+serde_json = { version = "1.0.116", features = ["default"]}
+
+[dev-dependencies]
+reqwest = { version = "0.12.4", default-features = false, features = ["json"]}
