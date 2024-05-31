@@ -36,6 +36,12 @@ run-app-service:
 run-auth-service:
 	cd $(shell pwd)/auth-service && cargo watch -q -c -w src/ -w assets/ -x run
 
+test-app-service:
+	cd $(shell pwd)/app-service && cargo test
+
+test-auth-service:
+	cd $(shell pwd)/auth-service && cargo test
+
 docker-build:
 	docker compose build
 
