@@ -18,29 +18,23 @@ COMMIT=$(shell sh -c 'git rev-parse --short HEAD')
 
 .PHONY: build run docker
 
-build: app-service auth-service
+build: build-app-service build-auth-service
 
-run: app-service auth-service
+run: run-app-service run-auth-service
 
 docker: docker-build docker-run
 
 build-app-service:
-	cargo install cargo-watch
-	cd app-service
-	cargo build
+	cargo install cargo-watch && cd $(shell pwd)/app-service && cargo build
 
 build-auth-service:
-	cargo install cargo-watch
-	cd auth-service
-	cargo build
+	cargo install cargo-watch && cd $(shell pwd)/auth-service && cargo build
 
 run-app-service:
-	cd app-service
-	cargo watch -q -c -w src/ -w assets/ -w templates/ -x run
+	cd $(shell pwd)/app-service && cargo watch -q -c -w src/ -w assets/ -w templates/ -x run
 
 run-auth-service:
-	cd auth-service
-	cargo watch -q -c -w src/ -w assets/ -x run
+	cd $(shell pwd)/auth-service && cargo watch -q -c -w src/ -w assets/ -x run
 
 docker-build:
 	docker compose build
