@@ -47,7 +47,7 @@ makefile:
 tests:
 - changed-files:
   - any-glob-to-any-file:
-    - "auth-service/tests/*"
+    - "auth-service/tests/**/*"
 deps:
 - changed-files:
   - any-glob-to-any-file:
