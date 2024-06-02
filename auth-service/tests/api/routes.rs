@@ -25,3 +25,47 @@ async fn root_returns_auth_ui(){
     assert_eq!(response.status().as_u16(), 200);
     assert_eq!(response.headers().get("content-type").unwrap(), "text/html")
 }
+
+#[tokio::test]
+async fn signup(){
+    let app = TestApp::new().await;
+    let body = vec![("username", "john"), ("password", "notSoSecurePassword")];
+    let response = app.signup(&body).await;
+
+    assert_eq!(response.status().as_u16(), 200);
+}
+
+#[tokio::test]
+async fn login(){
+    let app = TestApp::new().await;
+    let body = vec![("username", "john"), ("password", "notSoSecurePassword")];
+    let response = app.login(&body).await;
+
+    assert_eq!(response.status().as_u16(), 200);
+}
+
+#[tokio::test]
+async fn logout(){
+    let app = TestApp::new().await;
+    let response = app.logout().await;
+
+    assert_eq!(response.status().as_u16(), 200);
+}
+
+#[tokio::test]
+async fn verify_2fa(){
+    let app = TestApp::new().await;
+    let body = vec![("username", "john"), ("password", "notSoSecurePassword")];
+    let response = app.verify_2fa(&body).await;
+
+    assert_eq!(response.status().as_u16(), 200);
+}
+
+#[tokio::test]
+async fn verify_token(){
+    let app = TestApp::new().await;
+    let body = vec![("token", "jwt")];
+    let response = app.verify_token(&body).await;
+
+    assert_eq!(response.status().as_u16(), 200);
+}
