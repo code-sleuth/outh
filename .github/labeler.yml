@@ -57,3 +57,12 @@ swagger/spec:
 - changed-files:
   - any-glob-to-any-file:
     - "auth-service/api_schema.yml"
+serverless:
+- changed-files:
+  - any-glob-to-any-file:
+    - "auth-service/serverless.yml"
+    - "auth-service/package.json"
+    - "auth-service/package-lock.json"
+    - "app-service/package-lock.json"
+    - "app-service/package.json"
+    - "app-service/serverless.yml"
