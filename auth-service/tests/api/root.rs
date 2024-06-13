@@ -13,10 +13,15 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-mod helpers;
-mod login;
-mod logout;
-mod root;
-mod signup;
-mod verify_2fa;
-mod verify_token;
+
+use crate::helpers::TestApp;
+
+#[tokio::test]
+async fn root_returns_auth_ui(){
+    let app = TestApp::new().await;
+
+    let response = app.get_root().await;
+
+    assert_eq!(response.status().as_u16(), 200);
+    assert_eq!(response.headers().get("content-type").unwrap(), "text/html")
+}
