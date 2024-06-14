@@ -70,6 +70,9 @@ jobs:
         rustup toolchain install 1.77 -c rust-docs
         rustup default 1.77
 
+    - name: Verify License Headers
+      run: make verify-license-headers
+
     - name: Build and test app-service
       working-directory: ./app-service
       run: |

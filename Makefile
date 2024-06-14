@@ -47,3 +47,6 @@ docker-build:
 
 docker-run:
 	docker compose up
+
+verify-license-headers:
+	cd $(shell pwd) && ./scripts/license.sh
