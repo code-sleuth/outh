@@ -66,3 +66,7 @@ serverless:
     - "app-service/package-lock.json"
     - "app-service/package.json"
     - "app-service/serverless.yml"
+shell-scripts:
+- changed-files:
+  - any-glob-to-any-file:
+    - "scripts/**/*"
