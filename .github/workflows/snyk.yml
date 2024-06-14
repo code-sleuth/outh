@@ -13,16 +13,53 @@
 # limitations under the License.
 
 name: Snyk
-on: push
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - "**"
+      - "v[0-9]+.[0-9]+.x"
+
+    tags:
+      - "v*"
+
+  pull_request:
+    branches:
+      - "**"
+    types:
+      - opened
+      - reopened
 jobs:
-  security:
-    environment: dev
+  snyk:
     runs-on: ubuntu-latest
+    environment: dev
     steps:
-      - uses: actions/checkout@master
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            app-service/.cargo
+            app-service/target/
+            auth-service/.cargo
+            auth-service/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install Rust
+        run: |
+          rustup set profile minimal
+          rustup toolchain install 1.77 -c rust-docs
+          rustup default 1.77
+
+      - uses: snyk/actions/setup@master
+        id: snyk
+
       - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@master
+        run: snyk test --org=${{ secrets.SNYK_ORG }}
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          command: monitor
