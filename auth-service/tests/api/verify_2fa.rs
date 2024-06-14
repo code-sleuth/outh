@@ -13,10 +13,14 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-mod helpers;
-mod login;
-mod logout;
-mod root;
-mod signup;
-mod verify_2fa;
-mod verify_token;
+
+use crate::helpers::TestApp;
+
+#[tokio::test]
+async fn verify_2fa(){
+    let app = TestApp::new().await;
+    let body = vec![("username", "john"), ("password", "notSoSecurePassword")];
+    let response = app.verify_2fa(&body).await;
+
+    assert_eq!(response.status().as_u16(), 200);
+}

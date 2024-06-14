@@ -13,10 +13,24 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-mod helpers;
-mod login;
-mod logout;
-mod root;
-mod signup;
-mod verify_2fa;
-mod verify_token;
+use axum::{
+    http::StatusCode,
+    Json,
+    response::IntoResponse
+};
+
+use serde::{
+    Deserialize
+};
+
+#[derive(Deserialize)]
+pub struct SignupRequest {
+    pub email: String,
+    pub password: String,
+    #[serde(rename = "require2FA")]
+    pub require_2fa: bool
+}
+
+pub async fn signup(Json(request): Json<SignupRequest>) -> impl IntoResponse {
+    StatusCode::OK.into_response()
+}

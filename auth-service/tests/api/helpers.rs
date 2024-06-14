@@ -15,6 +15,7 @@
 */
 
 use auth_service::Application;
+use uuid::Uuid;
 
 pub struct TestApp {
     pub address: String,
@@ -102,4 +103,8 @@ impl TestApp {
             .await
             .expect("token verification failed")
     }
+}
+
+pub fn get_random_email() -> String {
+    format!("{}@0xfait.com", Uuid::new_v4())
 }
