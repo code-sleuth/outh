@@ -20,7 +20,7 @@ exclude_pattern='target|.vscode|node_modules|.idea'
 files=()
 echo "Crawling source code .🔎."
 echo 'Crawling *.rs|cargo.toml files .🔎.'
-files+=($(find . -type f \( -name '*.go' -o -name 'cargo.toml' \) -print | egrep -v ${exclude_pattern}))
+files+=($(find . -type f \( -name '*.rs' -o -name 'cargo.toml' \) -print | egrep -v ${exclude_pattern}))
 echo "Crawling html|js|ts|css files .🔎."
 files+=($(find . -type f \( -name '*.html' -o -name '*.css' -o -name '*.ts' -o -name '*.js' -o -name '*.scss' \) -print | egrep -v ${exclude_pattern}))
 echo "Crawling shell script files .🔎."
