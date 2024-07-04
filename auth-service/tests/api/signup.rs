@@ -14,7 +14,15 @@
    limitations under the License.
 */
 
-use crate::helpers::{get_random_email, TestApp};
+use auth_service::{
+    routes::SignupResponse,
+    ErrorResponse,
+};
+
+use crate::helpers::{
+    get_random_email,
+    TestApp,
+};
 
 #[tokio::test]
 async fn signup() {

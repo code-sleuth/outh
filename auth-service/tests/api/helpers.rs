@@ -13,9 +13,14 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-
+use std::sync::{Arc};
 use auth_service::Application;
 use uuid::Uuid;
+use auth_service::{
+    app_state::AppState,
+    services::hashmap_user_store::HashmapUserStore,
+};
+use tokio::sync::RwLock;
 
 pub struct TestApp {
     pub address: String,
@@ -24,7 +29,9 @@ pub struct TestApp {
 
 impl TestApp {
     pub async fn new() -> Self {
-        let app = Application::build("127.0.0.1:0")
+        let user_store = Arc::new(RwLock::new(HashmapUserStore::default()));
+        let app_state = AppState::new(user_store);
+        let app = Application::build(app_state,"127.0.0.1:0")
             .await
             .expect("failed to build service");
 
@@ -32,16 +39,14 @@ impl TestApp {
 
         // run auth service in a separate async task to avoid blocking of the main thread.
         #[allow(clippy::let_underscore_future)]
-        tokio::spawn(app.run());
+       let _ = tokio::spawn(app.run());
 
         let http_client = reqwest::Client::new();
 
-        let svc = TestApp {
+        Self {
             address,
             http_client,
-        };
-
-        svc
+        }
     }
 
     pub async fn get_root(&self) -> reqwest::Response {
@@ -106,5 +111,5 @@ impl TestApp {
 }
 
 pub fn get_random_email() -> String {
-    format!("{}@0xfait.com", Uuid::new_v4())
+    format!("{}@umbrella.corp", Uuid::new_v4())
 }
