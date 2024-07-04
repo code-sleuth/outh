@@ -13,12 +13,21 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-use auth_service::Application;
+
+use std::sync::Arc;
+use tokio::sync::RwLock;
+use auth_service::{
+    Application,
+    app_state::AppState,
+    services::hashmap_user_store::HashmapUserStore,
+};
 
 #[tokio::main]
 async fn main() {
     let address = "0.0.0.0:42069";
-    let svc = Application::build(address)
+    let user_store = Arc::new(RwLock::new(HashmapUserStore::default()));
+    let app_state = AppState::new(user_store);
+    let svc = Application::build(app_state, address)
         .await
         .expect("failed to build service");
 
