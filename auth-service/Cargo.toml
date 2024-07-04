@@ -26,6 +26,12 @@ tower-http = { version = "0.5.2", features = ["fs"] }
 serde = { version = "1.0.198", features = ["default", "derive"] }
 serde_json = { version = "1.0.116", features = ["default"]}
 uuid = { version = "1.8.0", features = ["v4", "fast-rng", "serde"] }
+validator = { version = "0.18.1", features = ["derive"]}
+async-trait = { version = "0.1.80" }
+rand = "0.8.5"
 
 [dev-dependencies]
 reqwest = { version = "0.12.4", default-features = false, features = ["json"]}
+quickcheck = { version = "1.0.3" }
+fake = { version = "2.9.2" }
+quickcheck_macros = { version = "1.0.0" }
