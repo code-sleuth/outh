@@ -14,25 +14,19 @@
    limitations under the License.
 */
 
-use std::sync::Arc;
-use tokio::sync::RwLock;
-use auth_service::{
-    Application,
-    app_state::AppState,
-    services::hashmap_user_store::HashmapUserStore,
-};
+use super::{Email, User, Password};
 
-#[tokio::main]
-async fn main() {
-    let address = "0.0.0.0:42069";
-    let user_store = Arc::new(RwLock::new(HashmapUserStore::default()));
-    let app_state = AppState::new(user_store);
-    let svc = Application::build(app_state, address)
-        .await
-        .expect("failed to build service");
+#[async_trait::async_trait]
+pub trait UserStore {
+    async fn add_user(&mut self, user: User) -> Result<(), UserStoreError>;
+    async fn get_user(&self, email: &Email) -> Result<User, UserStoreError>;
+    async fn validate_user(&self, email: &Email, password: &Password) -> Result<(), UserStoreError>;
+}
 
-    svc
-        .run()
-        .await
-        .expect("failed to run service");
+#[derive(Debug, PartialEq)]
+pub enum UserStoreError {
+    UserAlreadyExists,
+    UserNotFound,
+    InvalidCredentials,
+    UnexpectedError
 }

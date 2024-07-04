@@ -13,14 +13,27 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
+
 use axum::{
     http::StatusCode,
     Json,
-    response::IntoResponse
+    response::IntoResponse,
+    extract::State,
 };
 
 use serde::{
-    Deserialize
+    Deserialize,
+    Serialize,
+};
+
+use crate::{
+    app_state::AppState,
+    domain::{
+        AuthAPIError,
+        Email,
+        Password,
+        User,
+    }
 };
 
 #[derive(Deserialize)]
@@ -31,6 +44,32 @@ pub struct SignupRequest {
     pub require_2fa: bool
 }
 
-pub async fn signup(Json(request): Json<SignupRequest>) -> impl IntoResponse {
-    StatusCode::OK.into_response()
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+pub struct SignupResponse {
+    pub message: String,
+}
+
+pub async fn signup(
+    State(state): State<AppState>,
+    Json(request): Json<SignupRequest>
+) -> Result<impl IntoResponse, AuthAPIError> {
+    let email = Email::parse(request.email.clone()).map_err(|_| AuthAPIError::InvalidCredentials)?;
+    let password = Password::parse(request.password.clone()).map_err(|_| AuthAPIError::InvalidCredentials)?;
+
+    let user = User::new(email, password, request.require_2fa);
+    let mut user_store = state.user_store.write().await;
+
+    if user_store.get_user(&user.email).await.is_ok() {
+        return Err(AuthAPIError::UserAlreadyExists);
+    }
+
+    if user_store.add_user(user).await.is_err() {
+        return Err(AuthAPIError::UnexpectedError);
+    }
+
+    let response = Json(SignupResponse {
+        message: "User created successfully!".to_owned(),
+    });
+
+    Ok((StatusCode::CREATED, response))
 }

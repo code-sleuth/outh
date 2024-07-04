@@ -14,25 +14,14 @@
    limitations under the License.
 */
 
-use std::sync::Arc;
-use tokio::sync::RwLock;
-use auth_service::{
-    Application,
-    app_state::AppState,
-    services::hashmap_user_store::HashmapUserStore,
-};
+pub mod data_stores;
+pub mod email;
+pub mod password;
+pub mod error;
+pub mod user;
 
-#[tokio::main]
-async fn main() {
-    let address = "0.0.0.0:42069";
-    let user_store = Arc::new(RwLock::new(HashmapUserStore::default()));
-    let app_state = AppState::new(user_store);
-    let svc = Application::build(app_state, address)
-        .await
-        .expect("failed to build service");
-
-    svc
-        .run()
-        .await
-        .expect("failed to run service");
-}
+pub use data_stores::*;
+pub use email::*;
+pub use error::*;
+pub use user::*;
+pub use password::*;
