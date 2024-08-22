@@ -28,7 +28,7 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(user_store: UserStoreType) -> Self {
+    pub fn new(user_store: UserStoreType, banned_token_store: BannedTokenStoreType) -> Self {
         Self {
             user_store,
             banned_token_store,
