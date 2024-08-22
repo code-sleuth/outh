@@ -14,38 +14,26 @@
    limitations under the License.
 */
 
-use std::error::Error;
 use axum::{
-    Router,
-    serve::Serve,
+    http::{Method, StatusCode},
+    response::{IntoResponse, Response},
     routing::post,
-    response::{
-        IntoResponse,
-        Response,
-    },
-    http::StatusCode,
-    Json,
+    serve::Serve,
+    Json, Router,
 };
-use serde::{
-    Deserialize,
-    Serialize,
-};
-use tower_http::services::ServeDir;
 use domain::AuthAPIError;
-pub mod routes;
+use serde::{Deserialize, Serialize};
+use std::error::Error;
+use tower_http::{cors::CorsLayer, services::ServeDir};
 pub mod domain;
+pub mod routes;
 
 pub mod app_state;
 pub mod services;
+pub mod utils;
 
-use routes::{
-    login,
-    logout,
-    signup,
-    verify_2fa,
-    verify_token,
-};
 use crate::app_state::AppState;
+use routes::{login, logout, signup, verify_2fa, verify_token};
 
 // The Application struct encapsulates application logic
 pub struct Application {
@@ -69,10 +57,7 @@ impl Application {
         let address = listener.local_addr()?.to_string();
         let server = axum::serve(listener, router);
 
-        let app = Application {
-            server,
-            address
-        };
+        let app = Application { server, address };
         Ok(app)
     }
 
@@ -97,7 +82,7 @@ impl IntoResponse for AuthAPIError {
             }
         };
 
-        let body = Json(ErrorResponse{
+        let body = Json(ErrorResponse {
             error: error_message.to_string(),
         });
 
