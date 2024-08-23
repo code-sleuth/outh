@@ -140,9 +140,9 @@ mod tests {
     async fn test_validate_token_with_valid_token() {
         let email = Email::parse("ap@0xfrait.com".to_owned()).unwrap();
         let token = generate_auth_token(&email).unwrap();
-        let banned_toke_store = Arc::new(RwLock::new(HashsetBannedTokenStore::default()));
+        let banned_token_store = Arc::new(RwLock::new(HashsetBannedTokenStore::default()));
         let result = validate_token(&token, banned_token_store).await.unwrap();
-        assert_eq!(result.sub, "p@0xfrait.com");
+        assert_eq!(result.sub, "ap@0xfrait.com");
 
         let exp = Utc::now()
             .checked_add_signed(chrono::Duration::try_minutes(8).expect("valid duration"))
