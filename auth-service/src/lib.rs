@@ -37,9 +37,10 @@ use routes::{login, logout, signup, verify_2fa, verify_token};
 
 // The Application struct encapsulates application logic
 pub struct Application {
-    server: Serve<Router, Router>,
+    pub server: Serve<Router, Router>,
     // expose address as a public field, so it's accessible in tests
     pub address: String,
+    pub router: Router,
 }
 
 impl Application {
@@ -66,9 +67,13 @@ impl Application {
 
         let listener = tokio::net::TcpListener::bind(address).await?;
         let address = listener.local_addr()?.to_string();
-        let server = axum::serve(listener, router);
+        let server = axum::serve(listener, router.clone());
 
-        let app = Application { server, address };
+        let app = Application {
+            server,
+            address,
+            router,
+        };
         Ok(app)
     }
 

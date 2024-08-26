@@ -37,13 +37,16 @@ serde_json = { version = "1.0.116", features = ["default"] }
 uuid = { version = "1.8.0", features = ["v4", "fast-rng", "serde"] }
 validator = { version = "0.18.1", features = ["derive"] }
 async-trait = { version = "0.1.80" }
-rand = "0.8.5"
+rand = { version = "0.8.5" }
 lambda_runtime = { version = "0.12.0" }
 lambda_http = { version = "0.12.0" }
 jsonwebtoken = { version = "9.2.0" }
 chrono = { version = "0.4.35" }
 dotenvy = { version = "0.15.7" }
 lazy_static = { version = "1.4.0" }
+hyper = { version = "1.4.1" }
+http = { version = "1.1.0" }
+tower = { version = "0.5.0" }
 
 [dev-dependencies]
 reqwest = { version = "0.12.4", default-features = false, features = [
