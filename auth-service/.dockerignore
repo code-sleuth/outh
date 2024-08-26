@@ -16,3 +16,8 @@
 target/
 tests/
 Dockerfile
+/.aws-sam
+**samconfig.toml
+.idea
+.vscode
+.DS_Store
