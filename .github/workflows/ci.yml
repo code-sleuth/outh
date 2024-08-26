@@ -27,6 +27,12 @@ on:
     types: [opened, reopened, synchronize]
     branches-ignore:
       - deploy
+      - main
+
+  push:
+    branches-ignore:
+      - deploy
+      - main
 
 env:
   STAGE: dev
@@ -48,8 +54,8 @@ jobs:
       - name: Install Rust
         run: |
           rustup set profile minimal
-          rustup toolchain install 1.80.1 -c rust-docs
-          rustup default 1.80.1
+          rustup toolchain install 1.80.0 -c rust-docs
+          rustup default 1.80.0
 
         # Cache dependencies to speed up build times
       - name: Cache dependencies
