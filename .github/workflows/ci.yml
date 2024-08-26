@@ -62,8 +62,8 @@ jobs:
       - name: Install Rust
         run: |
           rustup set profile minimal
-          rustup toolchain install 1.77 -c rust-docs
-          rustup default 1.77
+          rustup toolchain install 1.80.1 -c rust-docs
+          rustup default 1.80.1
 
       - name: Verify License Headers
         run: make verify-license-headers
