@@ -13,14 +13,14 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-use std::sync::{Arc};
 use auth_service::Application;
-use uuid::Uuid;
 use auth_service::{
-    app_state::AppState,
-    services::hashmap_user_store::HashmapUserStore,
+    app_state::AppState, services::hashmap_user_store::HashmapUserStore,
+    services::hashset_banned_token_store::HashsetBannedTokenStore, utils::constants::test,
 };
+use std::sync::Arc;
 use tokio::sync::RwLock;
+use uuid::Uuid;
 
 pub struct TestApp {
     pub address: String,
@@ -30,8 +30,9 @@ pub struct TestApp {
 impl TestApp {
     pub async fn new() -> Self {
         let user_store = Arc::new(RwLock::new(HashmapUserStore::default()));
-        let app_state = AppState::new(user_store);
-        let app = Application::build(app_state,"127.0.0.1:0")
+        let banned_token_store = Arc::new(RwLock::new(HashsetBannedTokenStore::default()));
+        let app_state = AppState::new(user_store, banned_token_store);
+        let app = Application::build(app_state, test::APP_ADDRESS)
             .await
             .expect("failed to build service");
 
@@ -39,7 +40,7 @@ impl TestApp {
 
         // run auth service in a separate async task to avoid blocking of the main thread.
         #[allow(clippy::let_underscore_future)]
-       let _ = tokio::spawn(app.run());
+        let _ = tokio::spawn(app.run());
 
         let http_client = reqwest::Client::new();
 
@@ -59,7 +60,8 @@ impl TestApp {
 
     pub async fn signup<SignupRequest>(&self, body: &SignupRequest) -> reqwest::Response
     where
-    SignupRequest: serde::Serialize {
+        SignupRequest: serde::Serialize,
+    {
         self.http_client
             .post(&format!("{}/signup", &self.address))
             .json(body)
@@ -70,7 +72,8 @@ impl TestApp {
 
     pub async fn login<LoginRequest>(&self, body: &LoginRequest) -> reqwest::Response
     where
-    LoginRequest: serde::Serialize {
+        LoginRequest: serde::Serialize,
+    {
         self.http_client
             .post(&format!("{}/login", &self.address))
             .json(body)
@@ -89,7 +92,8 @@ impl TestApp {
 
     pub async fn verify_2fa<Request>(&self, body: &Request) -> reqwest::Response
     where
-    Request: serde::Serialize {
+        Request: serde::Serialize,
+    {
         self.http_client
             .post(&format!("{}/verify-2fa", &self.address))
             .json(body)
@@ -100,7 +104,8 @@ impl TestApp {
 
     pub async fn verify_token<Request>(&self, body: &Request) -> reqwest::Response
     where
-    Request: serde::Serialize {
+        Request: serde::Serialize,
+    {
         self.http_client
             .post(&format!("{}/verify-token", &self.address))
             .json(body)

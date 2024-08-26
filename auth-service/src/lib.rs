@@ -14,38 +14,26 @@
    limitations under the License.
 */
 
-use std::error::Error;
 use axum::{
-    Router,
-    serve::Serve,
+    http::{Method, StatusCode},
+    response::{IntoResponse, Response},
     routing::post,
-    response::{
-        IntoResponse,
-        Response,
-    },
-    http::StatusCode,
-    Json,
+    serve::Serve,
+    Json, Router,
 };
-use serde::{
-    Deserialize,
-    Serialize,
-};
-use tower_http::services::ServeDir;
 use domain::AuthAPIError;
-pub mod routes;
+use serde::{Deserialize, Serialize};
+use std::error::Error;
+use tower_http::{cors::CorsLayer, services::ServeDir};
 pub mod domain;
+pub mod routes;
 
 pub mod app_state;
 pub mod services;
+pub mod utils;
 
-use routes::{
-    login,
-    logout,
-    signup,
-    verify_2fa,
-    verify_token,
-};
 use crate::app_state::AppState;
+use routes::{login, logout, signup, verify_2fa, verify_token};
 
 // The Application struct encapsulates application logic
 pub struct Application {
@@ -56,6 +44,16 @@ pub struct Application {
 
 impl Application {
     pub async fn build(app_state: AppState, address: &str) -> Result<Self, Box<dyn Error>> {
+        let allowed_origins = [
+            "https://localhost:42069".parse()?,
+            "https://auth.0xfrait.com".parse()?,
+        ];
+
+        let cors = CorsLayer::new()
+            .allow_methods([Method::GET, Method::POST])
+            .allow_credentials(true)
+            .allow_origin(allowed_origins);
+
         let router = Router::new()
             .nest_service("/", ServeDir::new("assets"))
             .route("/signup", post(signup))
@@ -63,16 +61,14 @@ impl Application {
             .route("/logout", post(logout))
             .route("/verify-2fa", post(verify_2fa))
             .route("/verify-token", post(verify_token))
-            .with_state(app_state);
+            .with_state(app_state)
+            .layer(cors);
 
         let listener = tokio::net::TcpListener::bind(address).await?;
         let address = listener.local_addr()?.to_string();
         let server = axum::serve(listener, router);
 
-        let app = Application {
-            server,
-            address
-        };
+        let app = Application { server, address };
         Ok(app)
     }
 
@@ -92,12 +88,17 @@ impl IntoResponse for AuthAPIError {
         let (status, error_message) = match self {
             AuthAPIError::UserAlreadyExists => (StatusCode::CONFLICT, "User already exists"),
             AuthAPIError::InvalidCredentials => (StatusCode::BAD_REQUEST, "Invalid credentials"),
+            AuthAPIError::IncorrectCredentials => {
+                (StatusCode::UNAUTHORIZED, "Incorrect credentials")
+            }
             AuthAPIError::UnexpectedError => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Unexpected error")
             }
+            AuthAPIError::MissingToken => (StatusCode::BAD_REQUEST, "Missing auth token"),
+            AuthAPIError::InvalidToken => (StatusCode::UNAUTHORIZED, "Invalid auth token"),
         };
 
-        let body = Json(ErrorResponse{
+        let body = Json(ErrorResponse {
             error: error_message.to_string(),
         });
 

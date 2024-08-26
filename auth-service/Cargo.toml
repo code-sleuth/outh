@@ -17,21 +17,39 @@ name = "auth-service"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "lambda_binary"
+path = "bin/lambda/lambda.rs"
+
+[[bin]]
+name = "main"
+path = "src/main.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-axum = { version = "0.7.5"}
+axum = { version = "0.7.5" }
+axum-extra = { version = "0.9.3", features = ["cookie"] }
 tokio = { version = "1.38.0", features = ["full"] }
-tower-http = { version = "0.5.2", features = ["fs"] }
+tower-http = { version = "0.5.2", features = ["fs", "cors"] }
 serde = { version = "1.0.198", features = ["default", "derive"] }
-serde_json = { version = "1.0.116", features = ["default"]}
+serde_json = { version = "1.0.116", features = ["default"] }
 uuid = { version = "1.8.0", features = ["v4", "fast-rng", "serde"] }
-validator = { version = "0.18.1", features = ["derive"]}
+validator = { version = "0.18.1", features = ["derive"] }
 async-trait = { version = "0.1.80" }
 rand = "0.8.5"
+lambda_runtime = { version = "0.12.0" }
+lambda_http = { version = "0.12.0" }
+jsonwebtoken = { version = "9.2.0" }
+chrono = { version = "0.4.35" }
+dotenvy = { version = "0.15.7" }
+lazy_static = { version = "1.4.0" }
 
 [dev-dependencies]
-reqwest = { version = "0.12.4", default-features = false, features = ["json"]}
+reqwest = { version = "0.12.4", default-features = false, features = [
+    "json",
+    "cookies",
+] }
 quickcheck = { version = "1.0.3" }
 fake = { version = "2.9.2" }
 quickcheck_macros = { version = "1.0.0" }
