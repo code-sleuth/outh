@@ -47,6 +47,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install Rust
+        run: |
+          rustup set profile minimal
+          rustup toolchain install 1.80.1 -c rust-docs
+          rustup default 1.80.1
+
         # Cache dependencies to speed up build times
       - name: Cache dependencies
         uses: actions/cache@v4
@@ -58,12 +64,6 @@ jobs:
             auth-service/target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
-
-      - name: Install Rust
-        run: |
-          rustup set profile minimal
-          rustup toolchain install 1.80.1 -c rust-docs
-          rustup default 1.80.1
 
       - name: Verify License Headers
         run: make verify-license-headers
