@@ -64,6 +64,7 @@ jobs:
       - name: Build and test auth-service
         working-directory: ./auth-service
         run: |
+          cargo fetch --locked
           cargo build --verbose --release --bin auth-service
           cargo test --verbose
 

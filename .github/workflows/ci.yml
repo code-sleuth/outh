@@ -78,6 +78,7 @@ jobs:
         working-directory: ./auth-service
         run: |
           # export JWT_SECRET=secret
+          cargo fetch --locked
           cargo build --verbose
           cargo test --verbose
         env:
