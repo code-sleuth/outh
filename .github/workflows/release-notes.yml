@@ -15,7 +15,7 @@
 name: Release Notes Publisher
 on:
   release:
-    types: 'published'
+    types: "published"
 
 jobs:
   update_release_notes_docs:
@@ -26,11 +26,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_TOKEN }}
-          ref: 'master'
+          ref: "main"
 
       - name: Release information
+        id: release_drafter
         run: |
           export RELEASE_TAG=$(curl -s https://api.github.com/repos/code-sleuth/outh/releases/latest | jq '.["tag_name"]' | tr -d '"')
+          export "tag_name=$RELEASE_TAG" >>
           printf '%b\n' "---\nlayout: release\ndate: $(date +'%Y-%m-%d')\ntag: $RELEASE_TAG\n---\n\n`curl -s https://api.github.com/repos/code-sleuth/outh/releases/latest | jq -r '.["body"]'`" > ./docs/releases/$RELEASE_TAG.md
 
       - name: Commit
@@ -40,6 +42,6 @@ jobs:
           commit_user_name: code-sleuth
           commit_user_email: code.ibra@gmail.com
           commit_author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
-          commit_options: '--signoff'
-          commit_message: 'Release notes for Outh version ${{ steps.release_drafter.outputs.tag_name }}'
+          commit_options: "--signoff"
+          commit_message: "Release notes for Outh version ${{ steps.release_drafter.outputs.tag_name }}"
           branch: main
