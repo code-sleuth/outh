@@ -66,7 +66,9 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
 
       - name: Clear cache
-        run: cargo cache --autoclean
+        run: |
+          cargo install cargo-cache
+          cargo cache --autoclean
 
       - name: Verify License Headers
         run: make verify-license-headers
