@@ -58,8 +58,8 @@ jobs:
       - name: Install Rust
         run: |
           rustup set profile minimal
-          rustup toolchain install 1.80.0 -c rust-docs
-          rustup default 1.80.0
+          rustup toolchain install 1.77 -c rust-docs
+          rustup default 1.77
 
       - name: Build and test auth-service
         working-directory: ./auth-service
@@ -100,8 +100,8 @@ jobs:
       - name: Install Rust
         run: |
           rustup set profile minimal
-          rustup toolchain install 1.80.0 -c rust-docs
-          rustup default 1.80.0
+          rustup toolchain install 1.77 -c rust-docs
+          rustup default 1.77
 
       - name: Install SAM
         uses: aws-actions/setup-sam@v2
