@@ -23,12 +23,10 @@ on:
         required: true
         default: "warning"
 
-  push:
-    branches:
-      - main
-      - deploy
   pull_request_target:
     types: [opened, reopened, synchronize]
+    branches-ignore:
+      - deploy
 
 env:
   STAGE: dev
