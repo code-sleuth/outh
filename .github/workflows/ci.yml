@@ -65,6 +65,9 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
+      - name: Clear cache
+        run: cargo cache --autoclean
+
       - name: Verify License Headers
         run: make verify-license-headers
 
