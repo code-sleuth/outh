@@ -125,7 +125,7 @@ jobs:
 
       - name: SAM Build
         working-directory: ./auth-service
-        run: sam build --debug
+        run: sam build --config-file samconfig.toml --parameter-overrides "region=${AWS_REGION} aws_account_id=${AWS_ACCOUNT_ID} certificate_id=${CERTIFICATE_ID}" --debug
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
@@ -133,7 +133,7 @@ jobs:
 
       - name: SAM Deploy
         working-directory: ./auth-service
-        run: sam deploy
+        run: sam deploy --config-file samconfig.toml --parameter-overrides "region=${AWS_REGION} aws_account_id=${AWS_ACCOUNT_ID} certificate_id=${CERTIFICATE_ID}"
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
