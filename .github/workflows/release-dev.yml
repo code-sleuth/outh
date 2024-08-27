@@ -121,8 +121,6 @@ jobs:
         working-directory: ./auth-service
         run: |
           sam build --config-file samconfig.toml \
-            --region $AWS_REGION \
-            --image-repository $IMAGE_REPOSITORY \
             --parameter-overrides "CertificateArn=$CERT" \
             --save-params --debug
         env:
