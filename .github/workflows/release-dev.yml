@@ -123,7 +123,8 @@ jobs:
           sam build --config-file samconfig.toml \
             --region $AWS_REGION \
             --image-repository $IMAGE_REPOSITORY \
-            --parameter-overrides "CertificateArn=$CERT" --debug
+            --parameter-overrides "CertificateArn=$CERT" \
+            --save-params --debug
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           IMAGE_REPOSITORY: ${{ secrets.IMAGE_REPOSITORY }}
@@ -135,7 +136,8 @@ jobs:
           sam deploy --config-file samconfig.toml \
             --region $AWS_REGION \
             --image-repository $IMAGE_REPOSITORY \
-            --parameter-overrides "CertificateArn=$CERT" --debug
+            --parameter-overrides "CertificateArn=$CERT" \
+            --save-params --debug
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           IMAGE_REPOSITORY: ${{ secrets.IMAGE_REPOSITORY }}
