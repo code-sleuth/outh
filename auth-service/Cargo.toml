@@ -22,7 +22,7 @@ name = "lambda_binary"
 path = "bin/lambda/lambda.rs"
 
 [[bin]]
-name = "main"
+name = "auth-service"
 path = "src/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -46,7 +46,7 @@ dotenvy = { version = "0.15.7" }
 lazy_static = { version = "1.4.0" }
 hyper = { version = "1.4.1" }
 http = { version = "1.1.0" }
-tower = { version = "0.5.0" }
+tower = { version = "0.4.13" }
 
 [dev-dependencies]
 reqwest = { version = "0.12.4", default-features = false, features = [

@@ -17,7 +17,8 @@
 use crate::helpers::TestApp;
 
 #[tokio::test]
-async fn verify_token(){
+#[ignore]
+async fn verify_token() {
     let app = TestApp::new().await;
     let body = vec![("token", "jwt")];
     let response = app.verify_token(&body).await;

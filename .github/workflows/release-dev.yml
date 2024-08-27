@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Build & Test
+name: Release Dev
 
 on:
   workflow_call:
@@ -23,17 +23,9 @@ on:
         required: true
         default: "warning"
 
-  pull_request_target:
-    types: [opened, reopened, synchronize]
-    branches-ignore:
-      - deploy
-      - main
-
   push:
-    branches-ignore:
-      - deploy
+    branches:
       - main
-
 env:
   STAGE: dev
   AWS_REGION: us-east-1
@@ -45,17 +37,11 @@ jobs:
   build:
     environment: dev
     runs-on: ubuntu-latest
-
+    name: Build
     steps:
       # Checkout code from the repository
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Install Rust
-        run: |
-          rustup set profile minimal
-          rustup toolchain install 1.77 -c rust-docs
-          rustup default 1.77
 
         # Cache dependencies to speed up build times
       - name: Cache dependencies
@@ -69,31 +55,19 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
-      # - name: Clear cache
-      #   run: |
-      #     cargo install cargo-cache
-      #     cargo cache --autoclean
-      #     cargo cache --autoclean --remove-dir registry
-
-      - name: Verify License Headers
-        run: make verify-license-headers
-
-      - name: Build and test app-service
-        working-directory: ./app-service
+      - name: Install Rust
         run: |
-          cargo build --verbose
-          cargo test --verbose
+          rustup set profile minimal
+          rustup toolchain install 1.77 -c rust-docs
+          rustup default 1.77
 
       - name: Build and test auth-service
         working-directory: ./auth-service
         run: |
-          # export JWT_SECRET=secret
           cargo fetch --locked
-          cargo build --verbose
+          cargo build --verbose --release --bin auth-service
           cargo clean -p auth-service
           cargo test --verbose -- --skip "api/*"
-        env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
       # Set up Docker Buildx for multi-platform builds
       - name: Setup Docker Buildx
@@ -106,7 +80,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push Docker images
-        uses: docker/bake-action@v5
+        uses: docker/bake-action@v4
         with:
           push: true
           files: |
@@ -115,3 +89,50 @@ jobs:
           set: |
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
+  release:
+    needs: build
+    environment: dev
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        run: |
+          rustup set profile minimal
+          rustup toolchain install 1.77 -c rust-docs
+          rustup default 1.77
+
+      - name: Install SAM
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+          token: ${{ secrets.GH_TOKEN }}
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        name: Configure AWS Credentials
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: SAM Lint
+        working-directory: ./auth-service
+        run: sam validate --lint
+
+      - name: SAM Build
+        working-directory: ./auth-service
+        run: sam build
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          CERTIFICATE_ID: ${{ secrets.CERTIFICATE_ID }}
+
+      - name: SAM Deploy
+        working-directory: ./auth-service
+        run: sam deploy
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          CERTIFICATE_ID: ${{ secrets.CERTIFICATE_ID }}

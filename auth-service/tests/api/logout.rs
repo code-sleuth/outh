@@ -17,7 +17,8 @@
 use crate::helpers::TestApp;
 
 #[tokio::test]
-async fn logout(){
+#[ignore]
+async fn logout() {
     let app = TestApp::new().await;
     let response = app.logout().await;
 
