@@ -119,16 +119,24 @@ jobs:
 
       - name: SAM Build
         working-directory: ./auth-service
-        run: sam build --config-file samconfig.toml --parameter-overrides "region=${AWS_REGION} aws_account_id=${AWS_ACCOUNT_ID} certificate_id=${CERTIFICATE_ID}" --debug
+        run: |
+          sam build --config-file samconfig.toml \
+            --region $AWS_REGION \
+            --image-repository $IMAGE_REPOSITORY \
+            --parameter-overrides "CertificateArn=$CERT" --debug
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-          CERTIFICATE_ID: ${{ secrets.CERTIFICATE_ID }}
+          IMAGE_REPOSITORY: ${{ secrets.IMAGE_REPOSITORY }}
+          CERT: ${{ secrets.CERT }}
 
       - name: SAM Deploy
         working-directory: ./auth-service
-        run: sam deploy --config-file samconfig.toml --parameter-overrides "region=${AWS_REGION} aws_account_id=${AWS_ACCOUNT_ID} certificate_id=${CERTIFICATE_ID}" --debug
-        env:
+        run: |
+          sam deploy --config-file samconfig.toml \
+            --region $AWS_REGION \
+            --image-repository $IMAGE_REPOSITORY \
+            --parameter-overrides "CertificateArn=$CERT" --debug
+          env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-          CERTIFICATE_ID: ${{ secrets.CERTIFICATE_ID }}
+          IMAGE_REPOSITORY: ${{ secrets.IMAGE_REPOSITORY }}
+          CERT: ${{ secrets.CERT }}

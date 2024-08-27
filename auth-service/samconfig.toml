@@ -3,12 +3,12 @@ version = 0.1
 stack_name = "auth-service"
 s3_prefix = "auth-service"
 s3_bucket = "auth-service-cloudformation-stack"
-region = "{{ region }}"
+region = "region"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM"
 disable_rollback = true
-image_repository = "{{ aws_account_id }}.dkr.ecr.{{ region }}.amazonaws.com/outh-lambda"
-parameter_overrides = "CertificateArn=arn:aws:acm:{{ region }}:{{ aws_account_id }}:certificate/{{ certificate_id }}"
+image_repository = ""
+parameter_overrides = "CertificateArn="
 
 [default.build.parameters]
 cached = true
