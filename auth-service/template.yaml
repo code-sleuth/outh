@@ -37,7 +37,7 @@ Resources:
       ImageConfig:
         Command: ["bootstrap"]
       ImageUri: !Sub "{{resolve:ssm:/outh-lambda-image-name}}"
-      Architectures: ["arm64"]
+      Architectures: ["x86_64"]
       MemorySize: 128
       Events:
         AuthService:
