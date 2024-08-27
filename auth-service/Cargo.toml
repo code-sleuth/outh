@@ -22,7 +22,7 @@ name = "lambda_binary"
 path = "bin/lambda/lambda.rs"
 
 [[bin]]
-name = "main"
+name = "auth-service"
 path = "src/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
