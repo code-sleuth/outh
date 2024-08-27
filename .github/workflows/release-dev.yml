@@ -136,7 +136,7 @@ jobs:
             --region $AWS_REGION \
             --image-repository $IMAGE_REPOSITORY \
             --parameter-overrides "CertificateArn=$CERT" --debug
-          env:
+        env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           IMAGE_REPOSITORY: ${{ secrets.IMAGE_REPOSITORY }}
           CERT: ${{ secrets.CERT }}
