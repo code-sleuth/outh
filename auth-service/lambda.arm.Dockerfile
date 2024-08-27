@@ -13,7 +13,7 @@
 #    limitations under the License.
 #
 
-FROM public.ecr.aws/lambda/provided:al2-x86_64 as builder
+FROM public.ecr.aws/lambda/provided:al2-arm64 as builder
 
 RUN yum install -y gcc
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -22,11 +22,11 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 WORKDIR /usr/src/app
 COPY . .
 
-RUN rustup target add x86_64-unknown-linux-gnu
+RUN rustup target add aarch64-unknown-linux-gnu
 RUN cargo build --release --target aarch64-unknown-linux-gnu --bin lambda_binary
 
-FROM public.ecr.aws/lambda/provided:al2-x86_64
+FROM public.ecr.aws/lambda/provided:al2-arm64
 ENV AWS_LAMBDA_FUNCTION_NAME="auth-service"
 ENV JWT_SECRET="notSoSecret"
-COPY --from=builder /usr/src/app/target/x86_64-unknown-linux-gnu/release/lambda_binary ${LAMBDA_RUNTIME_DIR}/bootstrap
+COPY --from=builder /usr/src/app/target/aarch64-unknown-linux-gnu/release/lambda_binary ${LAMBDA_RUNTIME_DIR}/bootstrap
 CMD ["bootstrap"]
