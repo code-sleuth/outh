@@ -90,6 +90,7 @@ jobs:
           # export JWT_SECRET=secret
           cargo fetch --locked
           cargo build --verbose
+          cargo clean -p auth-service
           cargo test --verbose -- --skip "api/*"
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}

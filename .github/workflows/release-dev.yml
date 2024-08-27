@@ -66,6 +66,7 @@ jobs:
         run: |
           cargo fetch --locked
           cargo build --verbose --release --bin auth-service
+          cargo clean -p auth-service
           cargo test --verbose -- --skip "api/*"
 
       # Set up Docker Buildx for multi-platform builds
