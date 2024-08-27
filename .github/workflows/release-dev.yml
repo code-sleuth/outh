@@ -100,12 +100,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Rust
-        run: |
-          rustup set profile minimal
-          rustup toolchain install 1.77 -c rust-docs
-          rustup default 1.77
-
       - name: Install SAM
         uses: aws-actions/setup-sam@v2
         with:
@@ -133,7 +127,7 @@ jobs:
 
       - name: SAM Deploy
         working-directory: ./auth-service
-        run: sam deploy --config-file samconfig.toml --parameter-overrides "region=${AWS_REGION} aws_account_id=${AWS_ACCOUNT_ID} certificate_id=${CERTIFICATE_ID}"
+        run: sam deploy --config-file samconfig.toml --parameter-overrides "region=${AWS_REGION} aws_account_id=${AWS_ACCOUNT_ID} certificate_id=${CERTIFICATE_ID}" --debug
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
