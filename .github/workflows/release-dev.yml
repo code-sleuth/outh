@@ -133,6 +133,7 @@ jobs:
         run: |
           sam deploy --config-file samconfig.toml \
             --region $AWS_REGION \
+            --s3-bucket $SAM_S3_BUCKET \
             --image-repository $IMAGE_REPOSITORY \
             --parameter-overrides "CertificateArn=$CERT" \
             --save-params --debug
@@ -140,3 +141,4 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           IMAGE_REPOSITORY: ${{ secrets.IMAGE_REPOSITORY }}
           CERT: ${{ secrets.CERT }}
+          SAM_S3_BUCKET: ${{ secrets.SAM_S3_BUCKET }}
