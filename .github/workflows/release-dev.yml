@@ -68,6 +68,8 @@ jobs:
           cargo build --verbose --release --bin auth-service
           cargo clean -p auth-service
           cargo test --verbose -- --skip "api/*"
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
       # Set up Docker Buildx for multi-platform builds
       - name: Setup Docker Buildx
