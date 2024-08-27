@@ -125,7 +125,7 @@ jobs:
 
       - name: SAM Build
         working-directory: ./auth-service
-        run: sam build
+        run: sam build --debug
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
