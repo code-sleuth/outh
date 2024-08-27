@@ -47,7 +47,7 @@ Resources:
             Method: ANY
             ApiId: !Ref HttpApi
     Metadata:
-      Dockerfile: ./lambda.Dockerfile
+      Dockerfile: ./lambda.x86_64.Dockerfile
       DockerContext: .
       DockerTag: latest
 

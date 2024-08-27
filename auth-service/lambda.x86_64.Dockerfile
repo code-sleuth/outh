@@ -23,7 +23,7 @@ WORKDIR /usr/src/app
 COPY . .
 
 RUN rustup target add x86_64-unknown-linux-gnu
-RUN cargo build --release --target aarch64-unknown-linux-gnu --bin lambda_binary
+RUN cargo build --release --target x86_64-unknown-linux-gnu --bin lambda_binary
 
 FROM public.ecr.aws/lambda/provided:al2-x86_64
 ENV AWS_LAMBDA_FUNCTION_NAME="auth-service"
