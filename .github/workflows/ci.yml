@@ -45,7 +45,7 @@ jobs:
   build:
     environment: dev
     runs-on: ubuntu-latest
-
+    name: Build
     steps:
       # Checkout code from the repository
       - name: Checkout code
