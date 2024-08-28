@@ -15,9 +15,11 @@
 */
 use auth_service::Application;
 use auth_service::{
-    app_state::AppState, services::hashmap_user_store::HashmapUserStore,
+    app_state::AppState, app_state::BannedTokenStoreType,
+    services::hashmap_user_store::HashmapUserStore,
     services::hashset_banned_token_store::HashsetBannedTokenStore, utils::constants::test,
 };
+use reqwest::cookie::Jar;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
@@ -25,13 +27,15 @@ use uuid::Uuid;
 pub struct TestApp {
     pub address: String,
     pub http_client: reqwest::Client,
+    pub cookie_jar: Arc<Jar>,
+    pub banned_token_store: BannedTokenStoreType,
 }
 
 impl TestApp {
     pub async fn new() -> Self {
         let user_store = Arc::new(RwLock::new(HashmapUserStore::default()));
         let banned_token_store = Arc::new(RwLock::new(HashsetBannedTokenStore::default()));
-        let app_state = AppState::new(user_store, banned_token_store);
+        let app_state = AppState::new(user_store, banned_token_store.clone());
         let app = Application::build(app_state, test::APP_ADDRESS)
             .await
             .expect("failed to build service");
@@ -42,11 +46,17 @@ impl TestApp {
         #[allow(clippy::let_underscore_future)]
         let _ = tokio::spawn(app.run());
 
-        let http_client = reqwest::Client::new();
+        let cookie_jar = Arc::new(Jar::default());
+        let http_client = reqwest::Client::builder()
+            .cookie_provider(cookie_jar.clone())
+            .build()
+            .unwrap();
 
         Self {
             address,
             http_client,
+            cookie_jar,
+            banned_token_store,
         }
     }
 

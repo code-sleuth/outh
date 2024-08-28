@@ -14,14 +14,12 @@
    limitations under the License.
 */
 
-use validator::{
-    Validate
-};
+use validator::Validate;
 
 #[derive(Debug, Clone, PartialEq, Hash, Eq, Validate)]
-pub struct Email{
+pub struct Email {
     #[validate(email)]
-    pub email: String
+    pub email: String,
 }
 
 impl Email {
@@ -29,9 +27,7 @@ impl Email {
         let candidate = Email { email: s.clone() };
         match candidate.validate() {
             Ok(_) => Ok(candidate),
-            Err(e) => {
-                Err(format!("{} is not a valid email address. [{}]", s, e))
-            },
+            Err(e) => Err(format!("{} is not a valid email address. [{}]", s, e)),
         }
     }
 }
@@ -45,10 +41,7 @@ impl AsRef<str> for Email {
 #[cfg(test)]
 mod tests {
     use super::Email;
-    use fake::{
-        Fake,
-        faker::internet::en::SafeEmail
-    };
+    use fake::{faker::internet::en::SafeEmail, Fake};
     use rand;
 
     #[test]
@@ -62,13 +55,13 @@ mod tests {
         let email = "u.org".to_owned();
         assert!(Email::parse(email).is_err());
     }
-    
+
     #[test]
     fn reject_email_missing_subject() {
         let email = "@me.org".to_owned();
         assert!(Email::parse(email).is_err());
     }
-    
+
     #[derive(Debug, Clone)]
     struct ValidEmail(pub String);
 
@@ -78,7 +71,6 @@ mod tests {
             let email = SafeEmail().fake_with_rng(&mut rng);
             Self(email)
         }
-
     }
 
     #[quickcheck_macros::quickcheck]

@@ -83,7 +83,7 @@ impl Application {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ErrorResponse {
     pub error: String,
 }

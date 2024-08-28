@@ -42,7 +42,7 @@ pub async fn login(
     let user_store = &state.user_store.read().await;
 
     if user_store.validate_user(&email, &password).await.is_err() {
-        return (jar, Err(AuthAPIError::InvalidCredentials));
+        return (jar, Err(AuthAPIError::IncorrectCredentials));
     }
 
     let user = match user_store.get_user(&email).await {
