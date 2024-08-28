@@ -17,7 +17,8 @@
 use auth_service::{
     app_state::AppState,
     services::{
-        hashmap_user_store::HashmapUserStore, hashset_banned_token_store::HashsetBannedTokenStore,
+        hashmap_two_fa_code_store::HashmapTwoFACodeStore, hashmap_user_store::HashmapUserStore,
+        hashset_banned_token_store::HashsetBannedTokenStore, mock_email_client::MockEmailClient,
     },
     utils::constants::prod,
     Application,
@@ -61,7 +62,7 @@ async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
 async fn handle_lambda_event(app: Application, event: Request) -> Result<Response<Body>, Error> {
     // convert Lambda request to Axum request
     let (parts, body) = event.into_parts();
-    let uri = Uri::from_str(&parts.uri.path()).unwrap();
+    let uri = Uri::from_str(parts.uri.path()).unwrap();
     let method = Method::from_str(parts.method.as_str()).unwrap();
 
     let http_body = match body {
