@@ -90,3 +90,51 @@ async fn should_return_400_if_jwt_cookie_missing() {
         "Missing auth token".to_owned()
     );
 }
+
+#[tokio::test]
+async fn should_return_400_if_logout_called_twice_in_a_row() {
+    let app = TestApp::new().await;
+    let random_email = get_random_email();
+    let signup_body = serde_json::json!({
+        "email": random_email,
+        "password": "noTsoSecure",
+        "require2FA": false
+    });
+    let response = app.signup(&signup_body).await;
+    assert_eq!(response.status().as_u16(), 201);
+
+    let login_body = serde_json::json!({
+        "email": random_email,
+        "password": "noTsoSecure",
+    });
+    let response = app.login(&login_body).await;
+    assert_eq!(response.status().as_u16(), 200);
+
+    let auth_cookie = response
+        .cookies()
+        .find(|cookie| cookie.name() == JWT_COOKIE_NAME)
+        .expect("No auth cookie found");
+    assert!(!auth_cookie.value().is_empty());
+
+    // 1st logout
+    let response = app.logout().await;
+    assert_eq!(response.status().as_u16(), 200);
+    let auth_cookie = response
+        .cookies()
+        .find(|cookie| cookie.name() == JWT_COOKIE_NAME)
+        .expect("No auth cookie found");
+    assert!(auth_cookie.value().is_empty());
+
+    // 2nd logout
+    let response = app.logout().await;
+    assert_eq!(response.status().as_u16(), 400);
+
+    assert_eq!(
+        response
+            .json::<ErrorResponse>()
+            .await
+            .expect("could not deserialize response body to ErrorResponse")
+            .error,
+        "Missing auth token".to_owned()
+    );
+}
