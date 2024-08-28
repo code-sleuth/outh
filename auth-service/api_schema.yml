@@ -21,7 +21,7 @@ info:
     This is an API for an authentication service using JWT and optional email 2FA.
   version: 0.0.1
   contact:
-    name: Ibrahim Mbaziita
+    name: Ibrahim Mbaziira
     url: https://auth.0xfaint.com/support
     email: code.ibra@gmail.com
   license:
@@ -30,8 +30,8 @@ info:
     url: https://github.com/outh/LICENSE
 
 servers:
-  - url: 'https://auth.0xfaint.com/api'
-    description: Main server
+  - url: "https://auth.0xfaint.com"
+    description: Outh server
 
 paths:
   /:
@@ -39,13 +39,13 @@ paths:
       summary: Login/Sign-up UI
       description: This route serves the login/signup UI
       responses:
-        '200':
+        "200":
           description: Login/Signup UI
           content:
             text/html:
               schema:
                 type: string
-                example: '<html><body><h1>Login/Signup</h1></body></html>'
+                example: "<html><body><h1>Login/Signup</h1></body></html>"
   /signup:
     post:
       summary: Register a new user
@@ -66,7 +66,7 @@ paths:
                   type: boolean
                   description: Flag to enable two-factor authentication
       responses:
-        '201':
+        "201":
           description: User created successfully
           content:
             application/json:
@@ -76,7 +76,7 @@ paths:
                   message:
                     type: string
                     example: User created successfully!
-        '400':
+        "400":
           description: Invalid input
           content:
             application/json:
@@ -85,7 +85,7 @@ paths:
                 properties:
                   error:
                     type: string
-        '409':
+        "409":
           description: Email already exists
           content:
             application/json:
@@ -94,9 +94,9 @@ paths:
                 properties:
                   error:
                     type: string
-        '422':
+        "422":
           description: Unprocessable content
-        '500':
+        "500":
           description: Unexpected error
           content:
             application/json:
@@ -105,7 +105,7 @@ paths:
                 properties:
                   error:
                     type: string
-          
+
   /login:
     post:
       summary: Authenticate user and return JWT
@@ -123,14 +123,14 @@ paths:
                   type: string
                   format: password
       responses:
-        '200':
+        "200":
           description: Login successful
           headers:
             Set-Cookie:
               schema:
                 type: string
                 example: jwt=your_token; HttpOnly; SameSite=Lax; Secure; Path=/
-        '206':
+        "206":
           description: Login requires 2FA
           content:
             application/json:
@@ -141,7 +141,7 @@ paths:
                     type: string
                   loginAttemptId:
                     type: string
-        '400':
+        "400":
           description: Invalid input
           content:
             application/json:
@@ -150,7 +150,7 @@ paths:
                 properties:
                   error:
                     type: string
-        '401':
+        "401":
           description: Authentication failed
           content:
             application/json:
@@ -159,9 +159,9 @@ paths:
                 properties:
                   error:
                     type: string
-        '422':
+        "422":
           description: Unprocessable content
-        '500':
+        "500":
           description: Unexpected error
           content:
             application/json:
@@ -189,14 +189,14 @@ paths:
                 2FACode:
                   type: string
       responses:
-        '200':
+        "200":
           description: 2FA token verified successfully
           headers:
             Set-Cookie:
               schema:
                 type: string
                 example: jwt=your_token; HttpOnly; SameSite=Lax; Secure; Path=/
-        '400':
+        "400":
           description: Invalid input
           content:
             application/json:
@@ -205,7 +205,7 @@ paths:
                 properties:
                   error:
                     type: string
-        '401':
+        "401":
           description: Authentication failed
           content:
             application/json:
@@ -214,9 +214,9 @@ paths:
                 properties:
                   error:
                     type: string
-        '422':
+        "422":
           description: Unprocessable content
-        '500':
+        "500":
           description: Unexpected error
           content:
             application/json:
@@ -237,14 +237,14 @@ paths:
           required: true
           description: JWT token for authentication
       responses:
-        '200':
+        "200":
           description: Logout successful
           headers:
             Set-Cookie:
               schema:
                 type: string
                 example: jwt=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax; Secure; Path=/
-        '400':
+        "400":
           description: Invalid input
           content:
             application/json:
@@ -253,7 +253,7 @@ paths:
                 properties:
                   error:
                     type: string
-        '401':
+        "401":
           description: JWT is not valid
           content:
             application/json:
@@ -262,7 +262,7 @@ paths:
                 properties:
                   error:
                     type: string
-        '500':
+        "500":
           description: Unexpected error
           content:
             application/json:
@@ -286,9 +286,9 @@ paths:
                 token:
                   type: string
       responses:
-        '200':
+        "200":
           description: Token is valid
-        '401':
+        "401":
           description: JWT is not valid
           content:
             application/json:
@@ -297,9 +297,9 @@ paths:
                 properties:
                   error:
                     type: string
-        '422':
+        "422":
           description: Unprocessable content
-        '500':
+        "500":
           description: Unexpected error
           content:
             application/json:
