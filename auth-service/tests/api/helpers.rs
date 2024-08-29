@@ -15,11 +15,12 @@
 */
 use auth_service::Application;
 use auth_service::{
-    app_state::AppState, app_state::BannedTokenStoreType,
+    app_state::{AppState, BannedTokenStoreType, TwoFACodeStoreType},
     services::hashmap_two_fa_code_store::HashmapTwoFACodeStore,
     services::hashmap_user_store::HashmapUserStore,
     services::hashset_banned_token_store::HashsetBannedTokenStore,
-    services::mock_email_client::MockEmailClient, utils::constants::test,
+    services::mock_email_client::MockEmailClient,
+    utils::constants::test,
 };
 use reqwest::cookie::Jar;
 use std::sync::Arc;
@@ -31,6 +32,7 @@ pub struct TestApp {
     pub http_client: reqwest::Client,
     pub cookie_jar: Arc<Jar>,
     pub banned_token_store: BannedTokenStoreType,
+    pub two_fa_code_store: TwoFACodeStoreType,
 }
 
 impl TestApp {
@@ -42,7 +44,7 @@ impl TestApp {
         let app_state = AppState::new(
             user_store,
             banned_token_store.clone(),
-            two_fa_code_store,
+            two_fa_code_store.clone(),
             email_client,
         );
         let app = Application::build(app_state, test::APP_ADDRESS)
@@ -66,6 +68,7 @@ impl TestApp {
             http_client,
             cookie_jar,
             banned_token_store,
+            two_fa_code_store,
         }
     }
 
