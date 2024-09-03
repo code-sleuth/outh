@@ -40,12 +40,26 @@ env:
   REPOSITORY: outh
   RUST_BACKTRACE: 1
   CARGO_TERM_COLOR: always
+  SQLX_OFFLINE: true
 
 jobs:
   build:
     environment: dev
     runs-on: ubuntu-latest
     name: Build
+    services:
+      postgres:
+        image: postgres:16.4-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7.4.0-alpine
+        ports:
+          - 6379:6379
     steps:
       # Checkout code from the repository
       - name: Checkout code
@@ -94,6 +108,9 @@ jobs:
           cargo test --verbose -- --skip "api/*"
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          DATABASE_URL: postgres://postgres:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          CARGO_NET_GIT_FETCH_WITH_CLI: true
 
       # Set up Docker Buildx for multi-platform builds
       - name: Setup Docker Buildx
