@@ -47,6 +47,14 @@ lazy_static = { version = "1.4.0" }
 hyper = { version = "1.4.1" }
 http = { version = "1.1.0" }
 tower = { version = "0.4.13" }
+sqlx = { version = "0.8", features = [
+    "runtime-tokio-rustls",
+    "postgres",
+    "migrate",
+] }
+argon2 = { version = "0.5.3", features = ["std"] }
+redis = { version = "0.26.1", features = ["tokio-comp"] }
+test_helpers = { git = "https://github.com/code-sleuth/test-helpers.git", branch = "main" }
 
 [dev-dependencies]
 reqwest = { version = "0.12.4", default-features = false, features = [
