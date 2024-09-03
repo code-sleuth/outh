@@ -23,10 +23,13 @@ WORKDIR /usr/src/app
 COPY . .
 
 RUN rustup target add aarch64-unknown-linux-gnu
+ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
 RUN cargo build --release --target aarch64-unknown-linux-gnu --bin lambda_binary
 
 FROM public.ecr.aws/lambda/provided:al2-arm64
 ENV AWS_LAMBDA_FUNCTION_NAME="auth-service"
 ENV JWT_SECRET="notSoSecret"
+ENV SQLX_OFFLINE true
+ENV REDIS_HOST_NAME=redis
 COPY --from=builder /usr/src/app/target/aarch64-unknown-linux-gnu/release/lambda_binary ${LAMBDA_RUNTIME_DIR}/bootstrap
 CMD ["bootstrap"]

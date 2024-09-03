@@ -31,3 +31,17 @@ services:
       JWT_SECRET: ${JWT_SECRET}
     ports:
       - "42069:42069" # expose port 42069 so that applications outside the container can connect to it
+  postgres:
+    image: postgres:16.4-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: notSoSecret
+      POSTGRES_DB: postgres
+    ports:
+      - 5432:5432
+  redis:
+    image: redis:7.4.0-alpine
+    container_name: redis
+    ports:
+      - 6379:6379
