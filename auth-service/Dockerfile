@@ -30,8 +30,7 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --bin auth-service --recipe-path recipe.json
 # Build application
 COPY . .
-ENV SQLX_OFFLINE true
-ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
+ENV SQLX_OFFLINE=true
 RUN cargo build --release --bin auth-service
 
 # We do not need the Rust toolchain to run the binary!
