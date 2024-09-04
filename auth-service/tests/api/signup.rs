@@ -14,15 +14,7 @@
    limitations under the License.
 */
 
-use auth_service::{
-    routes::SignupResponse,
-    ErrorResponse,
-};
-
-use crate::helpers::{
-    get_random_email,
-    TestApp,
-};
+use crate::helpers::{get_random_email, TestApp};
 
 #[tokio::test]
 async fn signup() {
@@ -47,16 +39,11 @@ async fn signup() {
             "email": random_email,
             "require2FA": "true"
         }),
-        serde_json::json!({})
+        serde_json::json!({}),
     ];
 
     for t in table_tests {
         let response = app.signup(&t).await;
-        assert_eq!(
-            response.status().as_u16(),
-            422,
-            "Failed for input: {:?}",
-            t
-        );
+        assert_eq!(response.status().as_u16(), 422, "Failed for input: {:?}", t);
     }
 }
