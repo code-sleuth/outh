@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO USERS (email, password_hash, require_2fa) SELECT $1, $2, $3\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "23f8c14432391c60d3ccf50af81708553dd54cc555acde1afd77e213d33e2cc0"
+}
