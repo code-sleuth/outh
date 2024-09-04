@@ -110,7 +110,7 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           DATABASE_URL: postgres://postgres:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          CARGO_NET_GIT_FETCH_WITH_CLI: true
+          # CARGO_NET_GIT_FETCH_WITH_CLI: true
 
       # Set up Docker Buildx for multi-platform builds
       - name: Setup Docker Buildx
