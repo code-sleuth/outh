@@ -50,7 +50,7 @@ pub async fn login(
         Err(_) => return (jar, Err(AuthAPIError::UnexpectedError)),
     };
 
-    match user.requires_2fa {
+    match user.require_2fa {
         true => handle_2fa(&user.email, &state, jar).await,
         false => handle_no_2fa(&user.email, jar).await,
     }

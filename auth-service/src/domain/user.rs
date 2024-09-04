@@ -14,16 +14,13 @@
    limitations under the License.
 */
 
-use super::{
-    Email,
-    Password,
-};
+use super::{Email, Password};
 
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub struct User {
     pub email: Email,
     pub password: Password,
-    pub requires_2fa: bool,
+    pub require_2fa: bool,
 }
 
 impl User {
@@ -31,7 +28,7 @@ impl User {
         Self {
             email,
             password,
-            requires_2fa,
+            require_2fa: requires_2fa,
         }
     }
 }
