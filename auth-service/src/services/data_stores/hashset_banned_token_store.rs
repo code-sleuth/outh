@@ -49,6 +49,7 @@ mod tests {
         assert!(store.tokens.contains(&token))
     }
 
+    #[tokio::test]
     async fn test_contains_token() {
         let mut store = HashsetBannedTokenStore::default();
         let token = "the_token".to_owned();
