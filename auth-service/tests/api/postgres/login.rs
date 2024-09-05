@@ -14,13 +14,15 @@
    limitations under the License.
 */
 
-use auth_service::{utils::constants::JWT_COOKIE_NAME, ErrorResponse};
+use super::helpers::{get_random_email, TestApp};
+use auth_service::{
+    domain::Email, routes::TwoFactorAuthResponse, utils::constants::JWT_COOKIE_NAME, ErrorResponse,
+};
+use test_helpers::api_test;
 
-use crate::helpers::{get_random_email, TestApp};
-
-#[tokio::test]
+#[api_test]
 async fn should_return_200_if_valid_credentials_and_2fa_disabled() {
-    let app = TestApp::new().await;
+    //let app = TestApp::new().await;
     let random_email = get_random_email();
 
     let signup_body = serde_json::json!({
@@ -50,9 +52,9 @@ async fn should_return_200_if_valid_credentials_and_2fa_disabled() {
     assert!(!auth_cookie.value().is_empty());
 }
 
-#[tokio::test]
+#[api_test]
 async fn should_return_400_if_invalid_input() {
-    let app = TestApp::new().await;
+    //let app = TestApp::new().await;
 
     let random_email = get_random_email();
 
@@ -99,9 +101,9 @@ async fn should_return_400_if_invalid_input() {
     }
 }
 
-#[tokio::test]
+#[api_test]
 async fn should_return_401_if_incorrect_credentials() {
-    let app = TestApp::new().await;
+    //let app = TestApp::new().await;
 
     let random_email = get_random_email();
 
@@ -147,9 +149,9 @@ async fn should_return_401_if_incorrect_credentials() {
     }
 }
 
-#[tokio::test]
+#[api_test]
 async fn should_return_422_if_malformed_credentials() {
-    let app = TestApp::new().await;
+    //let app = TestApp::new().await;
 
     let random_email = get_random_email();
 

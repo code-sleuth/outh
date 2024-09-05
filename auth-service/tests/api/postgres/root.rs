@@ -14,11 +14,12 @@
    limitations under the License.
 */
 
-use crate::helpers::TestApp;
+use super::helpers::TestApp;
+use test_helpers::api_test;
 
-#[tokio::test]
-async fn root_returns_auth_ui(){
-    let app = TestApp::new().await;
+#[api_test]
+async fn root_returns_auth_ui() {
+    //let app = TestApp::new().await;
 
     let response = app.get_root().await;
 

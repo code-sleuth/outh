@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-use crate::helpers::{get_random_email, TestApp};
+use super::helpers::{get_random_email, TestApp};
 use auth_service::{
     domain::{Email, LoginAttemptId, TwoFACode},
     routes::TwoFactorAuthResponse,
@@ -208,6 +208,7 @@ async fn should_return_401_if_incorrect_credentials() {
     }
 }
 
+#[tokio::test]
 async fn should_return_401_if_old_code() {
     let app = TestApp::new().await;
     let random_email = get_random_email();

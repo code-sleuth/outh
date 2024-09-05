@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-use crate::helpers::{get_random_email, TestApp};
+use super::helpers::{get_random_email, TestApp};
 use auth_service::{utils::constants::JWT_COOKIE_NAME, ErrorResponse};
 
 #[tokio::test]
