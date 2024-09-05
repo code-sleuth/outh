@@ -16,21 +16,40 @@
 
 use auth_service::{
     app_state::AppState,
+    get_postgres_pool, get_redis_client,
     services::{
-        data_stores::{HashmapTwoFACodeStore, HashmapUserStore, HashsetBannedTokenStore},
+        data_stores::{
+            // HashmapTwoFACodeStore, HashmapUserStore, HashsetBannedTokenStore,
+            PostgresUserStore,
+            RedisBannedTokenStore,
+            RedisTwoFACodeStore,
+        },
         mock_email_client::MockEmailClient,
     },
-    utils::constants::prod,
+    utils::constants::{prod, DATABASE_URL, REDIS_HOST_NAME},
     Application,
 };
+use sqlx::PgPool;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
 #[tokio::main]
 async fn main() {
-    let user_store = Arc::new(RwLock::new(HashmapUserStore::default()));
-    let banned_token_store = Arc::new(RwLock::new(HashsetBannedTokenStore::default()));
-    let two_fa_code_store = Arc::new(RwLock::new(HashmapTwoFACodeStore::default()));
+    let pg_pool = configure_postgresql().await;
+    let redis_connection = Arc::new(RwLock::new(configure_redis()));
+
+    // use data structures
+    // let user_store = Arc::new(RwLock::new(HashmapUserStore::default()));
+    // let banned_token_store = Arc::new(RwLock::new(HashsetBannedTokenStore::default()));
+    // let two_fa_code_store = Arc::new(RwLock::new(HashmapTwoFACodeStore::default()));
+
+    // use persistent storage
+    let user_store = Arc::new(RwLock::new(PostgresUserStore::new(pg_pool)));
+    let banned_token_store = Arc::new(RwLock::new(RedisBannedTokenStore::new(
+        redis_connection.clone(),
+    )));
+    let two_fa_code_store = Arc::new(RwLock::new(RedisTwoFACodeStore::new(redis_connection)));
+
     let email_client = Arc::new(MockEmailClient);
     let app_state = AppState::new(
         user_store,
@@ -43,4 +62,24 @@ async fn main() {
         .expect("failed to build service");
 
     svc.run().await.expect("failed to run service");
+}
+
+async fn configure_postgresql() -> PgPool {
+    let pg_pool = get_postgres_pool(&DATABASE_URL)
+        .await
+        .expect("Failed to create Postgres connection pool!");
+
+    sqlx::migrate!()
+        .run(&pg_pool)
+        .await
+        .expect("Failed to run migrations");
+
+    pg_pool
+}
+
+fn configure_redis() -> redis::Connection {
+    get_redis_client(REDIS_HOST_NAME.to_owned())
+        .expect("Failed to get Redis client")
+        .get_connection()
+        .expect("Failed to get Redis connection")
 }
