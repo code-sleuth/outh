@@ -27,14 +27,19 @@
 │   ├── bin
 │   │   └── lambda
 │   │       └── lambda.rs
+│   ├── build.rs
 │   ├── lambda.arm.Dockerfile
 │   ├── lambda.x86_64.Dockerfile
+│   ├── migrations
+│   │   ├── 20240904120306_create_users_table.down.sql
+│   │   └── 20240904120306_create_users_table.up.sql
 │   ├── samconfig.toml
 │   ├── src
 │   │   ├── app_state.rs
 │   │   ├── domain
 │   │   │   ├── data_stores.rs
 │   │   │   ├── email.rs
+│   │   │   ├── email_client.rs
 │   │   │   ├── error.rs
 │   │   │   ├── mod.rs
 │   │   │   ├── password.rs
@@ -49,8 +54,15 @@
 │   │   │   ├── verify_2fa.rs
 │   │   │   └── verify_token.rs
 │   │   ├── services
-│   │   │   ├── hashmap_user_store.rs
-│   │   │   ├── hashset_banned_token_store.rs
+│   │   │   ├── data_stores
+│   │   │   │   ├── hashmap_two_fa_code_store.rs
+│   │   │   │   ├── hashmap_user_store.rs
+│   │   │   │   ├── hashset_banned_token_store.rs
+│   │   │   │   ├── mod.rs
+│   │   │   │   ├── postgres_user_store.rs
+│   │   │   │   ├── redis_banned_token_store.rs
+│   │   │   │   └── redis_two_fa_code_store.rs
+│   │   │   ├── mock_email_client.rs
 │   │   │   └── mod.rs
 │   │   └── utils
 │   │       ├── auth.rs
@@ -59,14 +71,25 @@
 │   ├── template.yaml
 │   └── tests
 │       └── api
-│           ├── helpers.rs
-│           ├── login.rs
-│           ├── logout.rs
+│           ├── data_structures
+│           │   ├── helpers.rs
+│           │   ├── login.rs
+│           │   ├── logout.rs
+│           │   ├── mod.rs
+│           │   ├── root.rs
+│           │   ├── signup.rs
+│           │   ├── verify_2fa.rs
+│           │   └── verify_token.rs
 │           ├── main.rs
-│           ├── root.rs
-│           ├── signup.rs
-│           ├── verify_2fa.rs
-│           └── verify_token.rs
+│           └── postgres
+│               ├── helpers.rs
+│               ├── login.rs
+│               ├── logout.rs
+│               ├── mod.rs
+│               ├── root.rs
+│               ├── signup.rs
+│               ├── verify_2fa.rs
+│               └── verify_token.rs
 ├── compose.override.yml
 ├── compose.yml
 ├── docs
