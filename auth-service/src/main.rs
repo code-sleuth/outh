@@ -29,7 +29,7 @@ use auth_service::{
         postmark_email_client::PostmarkEmailClient,
     },
     utils::{
-        constants::{prod, DATABASE_URL, POSTMARK_AUTH_TOKEN, REDIS_HOST_NAME},
+        constants::{prod, DATABASE_URL, JWT_SECRET, POSTMARK_AUTH_TOKEN, REDIS_HOST_NAME},
         tracing::init_tracing,
     },
     Application,
@@ -45,6 +45,8 @@ use tokio::sync::RwLock;
 async fn main() {
     color_eyre::install().expect("Failed to install color_eyre");
     init_tracing().expect("Failed to initialize tracing");
+
+    lazy_static::initialize(&JWT_SECRET);
 
     let pg_pool = configure_postgresql().await;
     let redis_connection = Arc::new(RwLock::new(configure_redis()));

@@ -28,7 +28,7 @@ services:
     image: ibrahimmbaziira/auth-service
     restart: "always" # automatically restart container when server crashes
     environment:
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
       DATABASE_URL: "postgres://postgres:notSoSecret@postgres:5432"
       POSTMARK_AUTH_TOKEN: ${POSTMARK_AUTH_TOKEN}
     ports:
