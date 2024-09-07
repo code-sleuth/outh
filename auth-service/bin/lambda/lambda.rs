@@ -25,22 +25,17 @@ use auth_service::{
     utils::constants::{prod, POSTMARK_AUTH_TOKEN},
     Application,
 };
-use axum::http::{Method, Uri};
+use axum::Router;
 use http::Request as HttpRequest;
 use lambda_http::{run, service_fn, Body, Error, Request, Response};
 use reqwest::Client;
 use secrecy::Secret;
-use std::str::FromStr;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tower::ServiceExt;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    run(service_fn(function_handler)).await
-}
-
-async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
     // init app state
     let user_store = Arc::new(RwLock::new(HashmapUserStore::default()));
     let banned_token_store = Arc::new(RwLock::new(HashsetBannedTokenStore::default()));
@@ -56,17 +51,18 @@ async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
     let app = Application::build(app_state, prod::APP_ADDRESS)
         .await
         .expect("failed to build service");
+    let router = app.router;
 
-    let response = handle_lambda_event(app, event).await?;
-
-    Ok(response)
+    run(service_fn(move |event: Request| {
+        let router = router.clone();
+        async move { handle_lambda_event(router, event).await }
+    }))
+    .await
 }
 
-async fn handle_lambda_event(app: Application, event: Request) -> Result<Response<Body>, Error> {
+async fn handle_lambda_event(router: Router, event: Request) -> Result<Response<Body>, Error> {
     // convert Lambda request to Axum request
     let (parts, body) = event.into_parts();
-    let uri = Uri::from_str(parts.uri.path()).unwrap();
-    let method = Method::from_str(parts.method.as_str()).unwrap();
 
     let http_body = match body {
         Body::Empty => axum::body::Body::empty(),
@@ -74,34 +70,28 @@ async fn handle_lambda_event(app: Application, event: Request) -> Result<Respons
         Body::Binary(data) => axum::body::Body::from(data),
     };
 
-    let http_request = HttpRequest::builder()
-        .uri(uri)
-        .header("Content-Type".to_owned(), "application/json".to_owned())
-        .method(method)
-        .body(http_body)
-        .unwrap();
+    let http_request = HttpRequest::from_parts(parts, http_body);
 
     // process request using the Router
-    let axum_response = app.router.oneshot(http_request).await.unwrap();
+    let axum_response = router.oneshot(http_request).await?;
 
     // convert Axum response to Lambda response
     let (parts, body) = axum_response.into_parts();
-    let lambda_body = match axum::body::to_bytes(body, 100000000).await {
-        Ok(bytes) => Body::Binary(bytes.to_vec()),
-        Err(_) => Body::Empty,
+    let body_bytes = axum::body::to_bytes(body, 100000000).await?;
+    let lambda_body = if body_bytes.is_empty() {
+        Body::Empty
+    } else {
+        Body::Binary(body_bytes.to_vec())
     };
 
-    let mut lambda_response = Response::builder()
-        .status(parts.status)
-        .body(lambda_body)
-        .unwrap();
-
-    // handle (copy) headers
-    for (key, value) in parts.headers.iter() {
-        lambda_response.headers_mut().insert(key, value.clone());
+    let mut builder = Response::builder().status(parts.status);
+    if let Some(headers) = builder.headers_mut() {
+        for (key, value) in parts.headers.iter() {
+            headers.append(key, value.clone());
+        }
     }
 
-    Ok(lambda_response)
+    Ok(builder.body(lambda_body)?)
 }
 
 fn configure_postmark_email_client() -> PostmarkEmailClient {
