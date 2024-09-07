@@ -61,6 +61,7 @@ tracing-subscriber = { version = "0.3.18", features = [
     "env-filter",
 ] }
 tracing-error = { version = "0.2.0" }
+subtle = { version = "2.5.0" }
 thiserror = { version = "1.0.58" }
 color-eyre = { version = "0.6.3" }
 secrecy = { version = "0.8.0", features = ["serde"] }

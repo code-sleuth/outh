@@ -15,8 +15,9 @@
 */
 use axum::{extract::State, response::IntoResponse, Json};
 use axum_extra::extract::CookieJar;
-use secrecy::Secret;
+use secrecy::{ExposeSecret, Secret};
 use serde::Deserialize;
+use subtle::ConstantTimeEq;
 
 use crate::{
     app_state::AppState,
@@ -50,7 +51,21 @@ pub async fn verify_2fa(
         Err(_) => return (jar, Err(AuthAPIError::IncorrectCredentials)),
     };
 
-    if !code_tuple.0.eq(&login_attempt_id) || !code_tuple.1.eq(&two_fa_code) {
+    let id_matches: bool = code_tuple
+        .0
+        .as_ref()
+        .expose_secret()
+        .as_bytes()
+        .ct_eq(login_attempt_id.as_ref().expose_secret().as_bytes())
+        .into();
+    let code_matches: bool = code_tuple
+        .1
+        .as_ref()
+        .expose_secret()
+        .as_bytes()
+        .ct_eq(two_fa_code.as_ref().expose_secret().as_bytes())
+        .into();
+    if !(id_matches & code_matches) {
         return (jar, Err(AuthAPIError::IncorrectCredentials));
     }
 
