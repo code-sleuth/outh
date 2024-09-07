@@ -139,7 +139,7 @@ impl PartialEq for TwoFACode {
 impl TwoFACode {
     pub fn parse(code: Secret<String>) -> Result<Self> {
         let code_as_u32 = code.expose_secret().parse::<u32>()?;
-        if (100_000..=999_000).contains(&code_as_u32) {
+        if (100_000..=999_999).contains(&code_as_u32) {
             Ok(Self(code))
         } else {
             Err(eyre!("Invalid 2FA code"))
@@ -158,5 +158,23 @@ impl Default for TwoFACode {
 impl AsRef<Secret<String>> for TwoFACode {
     fn as_ref(&self) -> &Secret<String> {
         &self.0
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::TwoFACode;
+    use secrecy::Secret;
+
+    #[test]
+    fn accept_full_generated_two_fa_code_range() {
+        assert!(TwoFACode::parse(Secret::new("100000".to_string())).is_ok());
+        assert!(TwoFACode::parse(Secret::new("999999".to_string())).is_ok());
+    }
+
+    #[test]
+    fn reject_two_fa_codes_outside_six_digit_range() {
+        assert!(TwoFACode::parse(Secret::new("99999".to_string())).is_err());
+        assert!(TwoFACode::parse(Secret::new("1000000".to_string())).is_err());
     }
 }
