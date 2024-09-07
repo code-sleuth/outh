@@ -41,10 +41,7 @@ impl Email {
         if ValidateEmail::validate_email(s.expose_secret()) {
             Ok(Self(s))
         } else {
-            Err(eyre!(format!(
-                "{} is not a valid email.",
-                s.expose_secret()
-            )))
+            Err(eyre!("submitted value is not a valid email"))
         }
     }
 }
@@ -78,6 +75,13 @@ mod tests {
     fn reject_email_missing_subject() {
         let email = Secret::new("@me.org".to_string());
         assert!(Email::parse(email).is_err());
+    }
+
+    #[test]
+    fn parse_error_does_not_contain_submitted_value() {
+        let submitted = "hunter2-typed-in-the-wrong-box";
+        let error = Email::parse(Secret::new(submitted.to_string())).unwrap_err();
+        assert!(!format!("{:?}", error).contains(submitted));
     }
 
     #[derive(Debug, Clone)]
