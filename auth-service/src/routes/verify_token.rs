@@ -17,7 +17,11 @@ use axum::{extract::State, http::StatusCode, Json};
 use secrecy::Secret;
 use serde::Deserialize;
 
-use crate::{app_state::AppState, domain::AuthAPIError, utils::auth::validate_token};
+use crate::{
+    app_state::AppState,
+    domain::AuthAPIError,
+    utils::auth::{validate_token, TokenValidationError},
+};
 
 pub async fn verify_token(
     State(state): State<AppState>,
@@ -25,7 +29,8 @@ pub async fn verify_token(
 ) -> Result<StatusCode, AuthAPIError> {
     match validate_token(&request.token, state.banned_token_store.clone()).await {
         Ok(_) => Ok(StatusCode::OK),
-        Err(_) => Err(AuthAPIError::InvalidToken),
+        Err(TokenValidationError::UnexpectedError(e)) => Err(AuthAPIError::UnexpectedError(e)),
+        Err(TokenValidationError::InvalidToken(_)) => Err(AuthAPIError::InvalidToken),
     }
 }
 

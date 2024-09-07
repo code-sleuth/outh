@@ -20,7 +20,10 @@ use secrecy::Secret;
 use crate::{
     app_state::AppState,
     domain::AuthAPIError,
-    utils::{auth::validate_token, constants::JWT_COOKIE_NAME},
+    utils::{
+        auth::{validate_token, TokenValidationError},
+        constants::JWT_COOKIE_NAME,
+    },
 };
 
 #[tracing::instrument(name = "Logout", skip_all)]
@@ -36,7 +39,10 @@ pub async fn logout(
     let token = Secret::new(cookie.value().to_owned());
     let _ = match validate_token(&token, state.banned_token_store.clone()).await {
         Ok(claims) => claims,
-        Err(_) => return (jar, Err(AuthAPIError::InvalidToken)),
+        Err(TokenValidationError::UnexpectedError(e)) => {
+            return (jar, Err(AuthAPIError::UnexpectedError(e)))
+        }
+        Err(TokenValidationError::InvalidToken(_)) => return (jar, Err(AuthAPIError::InvalidToken)),
     };
 
     if let Err(e) = state

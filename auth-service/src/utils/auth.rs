@@ -16,10 +16,11 @@
 
 use axum_extra::extract::cookie::{Cookie, SameSite};
 use chrono::Utc;
-use color_eyre::eyre::{eyre, Context, ContextCompat, Result};
+use color_eyre::eyre::{eyre, Context, ContextCompat, Report, Result};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Validation};
 use secrecy::{ExposeSecret, Secret};
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
 use crate::{app_state::BannedTokenStoreType, domain::email::Email};
 
@@ -72,18 +73,28 @@ fn generate_auth_token(email: &Email) -> Result<Secret<String>> {
     create_token(&claims)
 }
 
+#[derive(Debug, Error)]
+pub enum TokenValidationError {
+    #[error("Invalid token")]
+    InvalidToken(#[source] Report),
+    #[error("Unexpected error")]
+    UnexpectedError(#[source] Report),
+}
+
 #[tracing::instrument(name = "Validate token", skip_all)]
 pub async fn validate_token(
     token: &Secret<String>,
     banned_token_store: BannedTokenStoreType,
-) -> Result<Claims> {
+) -> Result<Claims, TokenValidationError> {
     match banned_token_store.read().await.contains_token(token).await {
         Ok(value) => {
             if value {
-                return Err(eyre!("token is banned"));
+                return Err(TokenValidationError::InvalidToken(eyre!(
+                    "token is banned"
+                )));
             }
         }
-        Err(e) => return Err(e.into()),
+        Err(e) => return Err(TokenValidationError::UnexpectedError(e.into())),
     }
 
     decode::<Claims>(
@@ -92,7 +103,7 @@ pub async fn validate_token(
         &Validation::default(),
     )
     .map(|data| data.claims)
-    .wrap_err("failed to decode token")
+    .map_err(|e| TokenValidationError::InvalidToken(e.into()))
 }
 
 #[tracing::instrument(name = "Create token", skip_all)]
