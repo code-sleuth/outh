@@ -19,17 +19,15 @@ use crate::{
     utils::auth::TOKEN_TTL_SECONDS,
 };
 use color_eyre::eyre::Context;
-use redis::{Commands, Connection};
+use redis::{aio::MultiplexedConnection, AsyncCommands};
 use secrecy::{ExposeSecret, Secret};
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 pub struct RedisBannedTokenStore {
-    conn: Arc<RwLock<Connection>>,
+    conn: MultiplexedConnection,
 }
 
 impl RedisBannedTokenStore {
-    pub fn new(conn: Arc<RwLock<Connection>>) -> Self {
+    pub fn new(conn: MultiplexedConnection) -> Self {
         Self { conn }
     }
 }
@@ -44,11 +42,10 @@ impl BannedTokenStore for RedisBannedTokenStore {
             .try_into()
             .wrap_err("failed to cast TOKEN_TTL_SECONDS to u64")
             .map_err(BannedTokenStoreError::UnexpectedError)?;
-        let _: () = self
-            .conn
-            .write()
-            .await
+        let mut conn = self.conn.clone();
+        let _: () = conn
             .set_ex(&token_key, value, ttl)
+            .await
             .wrap_err("failed to set banned token in Redis")
             .map_err(BannedTokenStoreError::UnexpectedError)?;
         Ok(())
@@ -58,11 +55,10 @@ impl BannedTokenStore for RedisBannedTokenStore {
     async fn contains_token(&self, token: &Secret<String>) -> Result<bool, BannedTokenStoreError> {
         let token_key = get_key(token.expose_secret());
 
-        let is_banned: bool = self
-            .conn
-            .write()
-            .await
+        let mut conn = self.conn.clone();
+        let is_banned: bool = conn
             .exists(&token_key)
+            .await
             .wrap_err("failed to check if token exists in Redis")
             .map_err(BannedTokenStoreError::UnexpectedError)?;
 

@@ -19,18 +19,16 @@ use crate::domain::{
     Email,
 };
 use color_eyre::eyre::Context;
-use redis::{Commands, Connection};
+use redis::{aio::MultiplexedConnection, AsyncCommands};
 use secrecy::{ExposeSecret, Secret};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 pub struct RedisTwoFACodeStore {
-    conn: Arc<RwLock<Connection>>,
+    conn: MultiplexedConnection,
 }
 
 impl RedisTwoFACodeStore {
-    pub fn new(conn: Arc<RwLock<Connection>>) -> Self {
+    pub fn new(conn: MultiplexedConnection) -> Self {
         Self { conn }
     }
 }
@@ -53,11 +51,10 @@ impl TwoFACodeStore for RedisTwoFACodeStore {
             .wrap_err("failed to serialize 2FA tuple")
             .map_err(TwoFACodeStoreError::UnexpectedError)?;
 
-        let _: () = self
-            .conn
-            .write()
-            .await
+        let mut conn = self.conn.clone();
+        let _: () = conn
             .set_ex(&key, serialized_data, TEN_MINUTES_IN_SECONDS)
+            .await
             .wrap_err("failed to set 2FA code in Redis")
             .map_err(TwoFACodeStoreError::UnexpectedError)?;
 
@@ -67,11 +64,10 @@ impl TwoFACodeStore for RedisTwoFACodeStore {
     #[tracing::instrument(name = "Removing 2FA code from Redis", skip_all)]
     async fn remove_code(&mut self, email: &Email) -> Result<(), TwoFACodeStoreError> {
         let key = get_key(email);
-        let _: () = self
-            .conn
-            .write()
-            .await
+        let mut conn = self.conn.clone();
+        let _: () = conn
             .del(&key)
+            .await
             .wrap_err("failed to delete 2FA code from Redis")
             .map_err(TwoFACodeStoreError::UnexpectedError)?;
         Ok(())
@@ -84,7 +80,8 @@ impl TwoFACodeStore for RedisTwoFACodeStore {
     ) -> Result<(LoginAttemptId, TwoFACode), TwoFACodeStoreError> {
         let key = get_key(email);
 
-        match self.conn.write().await.get::<_, String>(&key) {
+        let mut conn = self.conn.clone();
+        match conn.get::<_, String>(&key).await {
             Ok(value) => {
                 let data: TwoFATuple = serde_json::from_str(&value)
                     .wrap_err("failed to deserialize 2FA tuple")

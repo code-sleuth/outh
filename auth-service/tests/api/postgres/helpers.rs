@@ -51,7 +51,7 @@ impl TestApp {
     pub async fn new() -> Self {
         let db_name = Uuid::new_v4().to_string();
         let pg_pool = configure_postgresql(&db_name).await;
-        let redis_connection = Arc::new(RwLock::new(configure_redis()));
+        let redis_connection = configure_redis().await;
 
         let user_store = Arc::new(RwLock::new(PostgresUserStore::new(pg_pool)));
         let banned_token_store = Arc::new(RwLock::new(RedisBannedTokenStore::new(
@@ -251,12 +251,13 @@ async fn configure_database(db_conn_string: &Secret<String>, db_name: &str) {
         .expect("Failed to migrate the database");
 }
 
-fn configure_redis() -> redis::Connection {
+async fn configure_redis() -> redis::aio::MultiplexedConnection {
     let redis_hostname = DEFAULT_REDIS_HOSTNAME.to_owned();
 
     get_redis_client(redis_hostname)
         .expect("Failed to get Redis client")
-        .get_connection()
+        .get_multiplexed_async_connection()
+        .await
         .expect("Failed to get Redis connection")
 }
 
