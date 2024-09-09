@@ -1,18 +1,3 @@
-#  Copyright 2024 Ibrahim Mbaziira
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-
-# Visualize schema at: https://editor.swagger.io/
 openapi: 3.1.0
 info:
   title: Authentication Service API
@@ -22,20 +7,73 @@ info:
   version: 0.0.1
   contact:
     name: Ibrahim Mbaziira
-    url: https://auth.0xfaint.com/support
+    url: https://auth.0xfrait.com/support
     email: code.ibra@gmail.com
   license:
     name: Apache2
     identifier: Apache-2.0
-    url: https://github.com/outh/LICENSE
 
+schemes:
+  - http
+consumes:
+  - application/json
+produces:
+  - application/json
 servers:
-  - url: "https://auth.0xfaint.com"
+  - url: "https://auth.0xfrait.com"
     description: Outh server
+tags:
+  - name: introduction
+    description: |
+      Authentication service
 
+      ### Support
+
+      Authentication service
+
+      [Bug reports](https://github.com/code-sleuth/outh/issues) in the API are also welcome, as are pull requests to fix the issues.
+
+      ### Contributing
+
+      The source code for this API reference is hosted at https://github.com/code-sleuth/outh.
+
+  - name: signup
+    description: Endpoints for signing up.
+
+  - name: login
+    description: Endpoints for logging in.
+
+  - name: verify-2fa
+    description: Endpoints for verifying 2fa.
+
+  - name: logout
+    description: Endpoints for loging out.
+
+  - name: verify-token
+    description: Endpoints for verifying token.
+
+  - name: default
+    description: Base url.
+
+x-tagGroups:
+  - name: Overview
+    tags:
+      - introduction
+
+  - name: Routes
+    tags:
+      - login
+      - signup
+      - verify-2fa
+      - logout
+      - verify-token
+      - default
+
+basePath: /
 paths:
   /:
     get:
+      security: []
       summary: Login/Sign-up UI
       description: This route serves the login/signup UI
       responses:
@@ -45,9 +83,13 @@ paths:
             text/html:
               schema:
                 type: string
-                example: "<html><body><h1>Login/Signup</h1></body></html>"
+                examples:
+                  - "<html><body><h1>Login/Signup</h1></body></html>"
+          tags:
+            - default
   /signup:
     post:
+      security: []
       summary: Register a new user
       requestBody:
         required: true
@@ -75,7 +117,8 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: User created successfully!
+                    examples:
+                      - User created successfully!
         "400":
           description: Invalid input
           content:
@@ -105,9 +148,12 @@ paths:
                 properties:
                   error:
                     type: string
+      tags:
+        - signup
 
   /login:
     post:
+      security: []
       summary: Authenticate user and return JWT
       requestBody:
         required: true
@@ -129,7 +175,8 @@ paths:
             Set-Cookie:
               schema:
                 type: string
-                example: jwt=your_token; HttpOnly; SameSite=Lax; Secure; Path=/
+                examples:
+                  - jwt=your_token; HttpOnly; SameSite=Lax; Secure; Path=/
         "206":
           description: Login requires 2FA
           content:
@@ -170,9 +217,12 @@ paths:
                 properties:
                   error:
                     type: string
+      tags:
+        - login
 
   /verify-2fa:
     post:
+      security: []
       summary: Verify 2FA token
       requestBody:
         required: true
@@ -195,7 +245,8 @@ paths:
             Set-Cookie:
               schema:
                 type: string
-                example: jwt=your_token; HttpOnly; SameSite=Lax; Secure; Path=/
+                examples:
+                  - jwt=your_token; HttpOnly; SameSite=Lax; Secure; Path=/
         "400":
           description: Invalid input
           content:
@@ -225,9 +276,12 @@ paths:
                 properties:
                   error:
                     type: string
+      tags:
+        - verify-2fa
 
   /logout:
     post:
+      security: []
       summary: Logout user
       parameters:
         - in: cookie
@@ -243,7 +297,8 @@ paths:
             Set-Cookie:
               schema:
                 type: string
-                example: jwt=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax; Secure; Path=/
+                examples:
+                  - jwt=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax; Secure; Path=/
         "400":
           description: Invalid input
           content:
@@ -271,9 +326,12 @@ paths:
                 properties:
                   error:
                     type: string
+      tags:
+        - logout
 
   /verify-token:
     post:
+      security: []
       summary: Verify JWT
       description: Verifies if a JWT is valid
       requestBody:
@@ -308,3 +366,5 @@ paths:
                 properties:
                   error:
                     type: string
+      tags:
+        - verify-token
