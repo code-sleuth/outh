@@ -14,14 +14,10 @@
    limitations under the License.
 */
 
-use crate::helpers::TestApp;
+use super::Email;
+use color_eyre::eyre::Result;
 
-#[tokio::test]
-async fn root_returns_auth_ui(){
-    let app = TestApp::new().await;
-
-    let response = app.get_root().await;
-
-    assert_eq!(response.status().as_u16(), 200);
-    assert_eq!(response.headers().get("content-type").unwrap(), "text/html")
+#[async_trait::async_trait]
+pub trait EmailClient {
+    async fn send_email(&self, recipient: &Email, subject: &str, content: &str) -> Result<()>;
 }

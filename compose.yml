@@ -18,14 +18,38 @@ services:
     image: ibrahimmbaziira/app-service # specify name of image on Docker Hub
     restart: "always" # automatically restart container when server crashes
     environment: # set up environment variables
-      AUTH_SERVICE_IP: ${AUTH_SERVICE_IP} 
+      AUTH_SERVICE_IP: ${AUTH_SERVICE_IP}
     ports:
-      - "42068:42068" # expose port 42068 so that applications outside the container can connect to it 
+      - "42068:42068" # expose port 42068 so that applications outside the container can connect to it
     depends_on: # only run app-service after auth-service has started
       auth-service:
         condition: service_started
   auth-service:
     image: ibrahimmbaziira/auth-service
     restart: "always" # automatically restart container when server crashes
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
     ports:
-      - "42069:42069" # expose port 42069 so that applications outside the container can connect to it 
+      - "42069:42069" # expose port 42069 so that applications outside the container can connect to it
+    depends_on:
+      - postgres
+  postgres:
+    image: postgres:16.4-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: notSoSecret
+      POSTGRES_DB: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres:/var/lib/postgresql/data
+  redis:
+    image: redis:7.4.0-alpine
+    container_name: redis
+    ports:
+      - 6379:6379
+
+volumes:
+  postgres:
+    driver: local

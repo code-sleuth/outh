@@ -13,11 +13,23 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-use axum::{
-    http::StatusCode,
-    response::IntoResponse
-};
+use axum::{extract::State, http::StatusCode, Json};
+use secrecy::Secret;
+use serde::Deserialize;
 
-pub async fn verify_token() -> impl IntoResponse {
-    StatusCode::OK.into_response()
+use crate::{app_state::AppState, domain::AuthAPIError, utils::auth::validate_token};
+
+pub async fn verify_token(
+    State(state): State<AppState>,
+    Json(request): Json<VerifyTokenRequest>,
+) -> Result<StatusCode, AuthAPIError> {
+    match validate_token(&request.token, state.banned_token_store.clone()).await {
+        Ok(_) => Ok(StatusCode::OK),
+        Err(_) => Err(AuthAPIError::InvalidToken),
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct VerifyTokenRequest {
+    token: Secret<String>,
 }

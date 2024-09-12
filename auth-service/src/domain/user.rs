@@ -14,13 +14,21 @@
    limitations under the License.
 */
 
-use crate::helpers::TestApp;
+use super::{Email, Password};
 
-#[tokio::test]
-async fn verify_token(){
-    let app = TestApp::new().await;
-    let body = vec![("token", "jwt")];
-    let response = app.verify_token(&body).await;
+#[derive(Debug, Clone, PartialEq)]
+pub struct User {
+    pub email: Email,
+    pub password: Password,
+    pub require_2fa: bool,
+}
 
-    assert_eq!(response.status().as_u16(), 200);
+impl User {
+    pub fn new(email: Email, password: Password, requires_2fa: bool) -> Self {
+        Self {
+            email,
+            password,
+            require_2fa: requires_2fa,
+        }
+    }
 }

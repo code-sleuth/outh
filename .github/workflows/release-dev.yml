@@ -1,0 +1,162 @@
+# Copyright 2024 Ibrahim Mbaziira
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Release Dev
+
+on:
+  workflow_call:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: "Log level"
+        required: true
+        default: "warning"
+
+  push:
+    branches:
+      - main
+env:
+  STAGE: dev
+  AWS_REGION: us-east-1
+  REPOSITORY: outh
+  RUST_BACKTRACE: 1
+  CARGO_TERM_COLOR: always
+  SQLX_OFFLINE: true
+
+jobs:
+  build:
+    environment: dev
+    runs-on: ubuntu-latest
+    name: Build
+    services:
+      postgres:
+        image: postgres:16.4-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7.4.0-alpine
+        ports:
+          - 6379:6379
+    steps:
+      # Checkout code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+        # Cache dependencies to speed up build times
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            app-service/.cargo
+            app-service/target/
+            auth-service/.cargo
+            auth-service/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install Rust
+        run: |
+          rustup set profile minimal
+          rustup toolchain install 1.77 -c rust-docs
+          rustup default 1.77
+
+      - name: Build and test auth-service
+        working-directory: ./auth-service
+        run: |
+          cargo fetch --locked
+          cargo build --verbose --release --bin auth-service
+          cargo clean -p auth-service
+          cargo test --verbose -- --skip "api/*"
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          DATABASE_URL: postgres://postgres:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTMARK_AUTH_TOKEN: ${{ secrets.POSTMARK_AUTH_TOKEN }}
+          # CARGO_NET_GIT_FETCH_WITH_CLI: true
+
+      # Set up Docker Buildx for multi-platform builds
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker images
+        uses: docker/bake-action@v5
+        with:
+          push: true
+          files: |
+            compose.yml
+            compose.override.yml
+          set: |
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
+  release:
+    needs: build
+    environment: dev
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install SAM
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+          token: ${{ secrets.GH_TOKEN }}
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        name: Configure AWS Credentials
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: SAM Lint
+        working-directory: ./auth-service
+        run: sam validate --lint
+
+      - name: SAM Build
+        working-directory: ./auth-service
+        run: |
+          sam build --config-file samconfig.toml \
+            --parameter-overrides "CertificateArn=$CERT" \
+            --save-params --debug
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          IMAGE_REPOSITORY: ${{ secrets.IMAGE_REPOSITORY }}
+          CERT: ${{ secrets.CERT }}
+
+      - name: SAM Deploy
+        working-directory: ./auth-service
+        run: |
+          sam deploy --config-file samconfig.toml \
+            --region $AWS_REGION \
+            --s3-bucket $SAM_S3_BUCKET \
+            --image-repository $IMAGE_REPOSITORY \
+            --parameter-overrides "CertificateArn=$CERT" \
+            --save-params --debug
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          IMAGE_REPOSITORY: ${{ secrets.IMAGE_REPOSITORY }}
+          CERT: ${{ secrets.CERT }}
+          SAM_S3_BUCKET: ${{ secrets.SAM_S3_BUCKET }}

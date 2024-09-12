@@ -15,16 +15,44 @@
 */
 
 use auth_service::Application;
+use auth_service::{
+    app_state::{AppState, BannedTokenStoreType, TwoFACodeStoreType},
+    domain::Email,
+    services::data_stores::{HashmapTwoFACodeStore, HashmapUserStore, HashsetBannedTokenStore},
+    services::postmark_email_client::PostmarkEmailClient,
+    utils::constants::test,
+};
+use reqwest::{cookie::Jar, Client};
+use secrecy::Secret;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 use uuid::Uuid;
+use wiremock::MockServer;
 
 pub struct TestApp {
     pub address: String,
     pub http_client: reqwest::Client,
+    pub cookie_jar: Arc<Jar>,
+    pub banned_token_store: BannedTokenStoreType,
+    pub two_fa_code_store: TwoFACodeStoreType,
+    pub email_server: MockServer,
 }
 
 impl TestApp {
     pub async fn new() -> Self {
-        let app = Application::build("127.0.0.1:0")
+        let user_store = Arc::new(RwLock::new(HashmapUserStore::default()));
+        let banned_token_store = Arc::new(RwLock::new(HashsetBannedTokenStore::default()));
+        let two_fa_code_store = Arc::new(RwLock::new(HashmapTwoFACodeStore::default()));
+        let email_server = MockServer::start().await;
+        let base_url = email_server.uri();
+        let email_client = Arc::new(configure_postmark_email_client(base_url));
+        let app_state = AppState::new(
+            user_store,
+            banned_token_store.clone(),
+            two_fa_code_store.clone(),
+            email_client,
+        );
+        let app = Application::build(app_state, test::APP_ADDRESS)
             .await
             .expect("failed to build service");
 
@@ -32,16 +60,22 @@ impl TestApp {
 
         // run auth service in a separate async task to avoid blocking of the main thread.
         #[allow(clippy::let_underscore_future)]
-        tokio::spawn(app.run());
+        let _ = tokio::spawn(app.run());
 
-        let http_client = reqwest::Client::new();
+        let cookie_jar = Arc::new(Jar::default());
+        let http_client = reqwest::Client::builder()
+            .cookie_provider(cookie_jar.clone())
+            .build()
+            .unwrap();
 
-        let svc = TestApp {
+        Self {
             address,
             http_client,
-        };
-
-        svc
+            cookie_jar,
+            banned_token_store,
+            two_fa_code_store,
+            email_server,
+        }
     }
 
     pub async fn get_root(&self) -> reqwest::Response {
@@ -54,7 +88,8 @@ impl TestApp {
 
     pub async fn signup<SignupRequest>(&self, body: &SignupRequest) -> reqwest::Response
     where
-    SignupRequest: serde::Serialize {
+        SignupRequest: serde::Serialize,
+    {
         self.http_client
             .post(&format!("{}/signup", &self.address))
             .json(body)
@@ -65,7 +100,8 @@ impl TestApp {
 
     pub async fn login<LoginRequest>(&self, body: &LoginRequest) -> reqwest::Response
     where
-    LoginRequest: serde::Serialize {
+        LoginRequest: serde::Serialize,
+    {
         self.http_client
             .post(&format!("{}/login", &self.address))
             .json(body)
@@ -84,7 +120,8 @@ impl TestApp {
 
     pub async fn verify_2fa<Request>(&self, body: &Request) -> reqwest::Response
     where
-    Request: serde::Serialize {
+        Request: serde::Serialize,
+    {
         self.http_client
             .post(&format!("{}/verify-2fa", &self.address))
             .json(body)
@@ -95,7 +132,8 @@ impl TestApp {
 
     pub async fn verify_token<Request>(&self, body: &Request) -> reqwest::Response
     where
-    Request: serde::Serialize {
+        Request: serde::Serialize,
+    {
         self.http_client
             .post(&format!("{}/verify-token", &self.address))
             .json(body)
@@ -106,5 +144,18 @@ impl TestApp {
 }
 
 pub fn get_random_email() -> String {
-    format!("{}@0xfait.com", Uuid::new_v4())
+    format!("{}@umbrella.corp", Uuid::new_v4())
+}
+
+fn configure_postmark_email_client(base_url: String) -> PostmarkEmailClient {
+    let postmark_auth_token = Secret::new("auth_token".to_owned());
+
+    let sender = Email::parse(Secret::new(test::email_client::SENDER.to_owned())).unwrap();
+
+    let http_client = Client::builder()
+        .timeout(test::email_client::TIMEOUT)
+        .build()
+        .expect("Failed to build HTTP client");
+
+    PostmarkEmailClient::new(base_url, sender, postmark_auth_token, http_client)
 }
