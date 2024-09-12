@@ -16,15 +16,22 @@
 
 use auth_service::{
     app_state::AppState,
+    domain::Email,
     services::{
         data_stores::{HashmapTwoFACodeStore, HashmapUserStore, HashsetBannedTokenStore},
-        mock_email_client::MockEmailClient,
+        //mock_email_client::MockEmailClient,
+        postmark_email_client::PostmarkEmailClient,
     },
-    utils::constants::prod,
+    utils::{
+        constants::{prod, POSTMARK_AUTH_TOKEN},
+        tracing::init_tracing,
+    },
     Application,
 };
 use http::Request as HttpRequest;
 use lambda_http::{run, service_fn, Body, Error, Request, Response};
+use reqwest::Client;
+use secrecy::Secret;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tower::ServiceExt;
@@ -38,11 +45,13 @@ async fn main() -> Result<(), Error> {
 }
 
 async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
+    color_eyre::install().expect("Failed to install color_eyre");
+    init_tracing().expect("Failed to initialize tracing");
     // init app state
     let user_store = Arc::new(RwLock::new(HashmapUserStore::default()));
     let banned_token_store = Arc::new(RwLock::new(HashsetBannedTokenStore::default()));
     let two_fa_code_store = Arc::new(RwLock::new(HashmapTwoFACodeStore::default()));
-    let email_client = Arc::new(MockEmailClient);
+    let email_client = Arc::new(configure_postmark_email_client());
     let app_state = AppState::new(
         user_store,
         banned_token_store,
@@ -98,4 +107,18 @@ async fn handle_lambda_event(app: Application, event: Request) -> Result<Respons
     }
 
     Ok(lambda_response)
+}
+
+fn configure_postmark_email_client() -> PostmarkEmailClient {
+    let http_client = Client::builder()
+        .timeout(prod::email_client::TIMEOUT)
+        .build()
+        .expect("Failed to build HTTP client");
+
+    PostmarkEmailClient::new(
+        prod::email_client::BASE_URL.to_owned(),
+        Email::parse(Secret::new(prod::email_client::SENDER.to_owned())).unwrap(),
+        POSTMARK_AUTH_TOKEN.to_owned(),
+        http_client,
+    )
 }
