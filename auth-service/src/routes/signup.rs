@@ -14,34 +14,21 @@
    limitations under the License.
 */
 
-use axum::{
-    http::StatusCode,
-    Json,
-    response::IntoResponse,
-    extract::State,
-};
-
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
+use secrecy::Secret;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     app_state::AppState,
-    domain::{
-        AuthAPIError,
-        Email,
-        Password,
-        User,
-    }
+    domain::{AuthAPIError, Email, Password, User},
 };
 
 #[derive(Deserialize)]
 pub struct SignupRequest {
-    pub email: String,
-    pub password: String,
+    pub email: Secret<String>,
+    pub password: Secret<String>,
     #[serde(rename = "require2FA")]
-    pub require_2fa: bool
+    pub require_2fa: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -49,12 +36,15 @@ pub struct SignupResponse {
     pub message: String,
 }
 
+#[tracing::instrument(name = "Signup", skip_all)]
 pub async fn signup(
     State(state): State<AppState>,
-    Json(request): Json<SignupRequest>
+    Json(request): Json<SignupRequest>,
 ) -> Result<impl IntoResponse, AuthAPIError> {
-    let email = Email::parse(request.email.clone()).map_err(|_| AuthAPIError::InvalidCredentials)?;
-    let password = Password::parse(request.password.clone()).map_err(|_| AuthAPIError::InvalidCredentials)?;
+    let email =
+        Email::parse(request.email.clone()).map_err(|_| AuthAPIError::InvalidCredentials)?;
+    let password =
+        Password::parse(request.password.clone()).map_err(|_| AuthAPIError::InvalidCredentials)?;
 
     let user = User::new(email, password, request.require_2fa);
     let mut user_store = state.user_store.write().await;
@@ -63,8 +53,8 @@ pub async fn signup(
         return Err(AuthAPIError::UserAlreadyExists);
     }
 
-    if user_store.add_user(user).await.is_err() {
-        return Err(AuthAPIError::UnexpectedError);
+    if let Err(e) = user_store.add_user(user).await {
+        return Err(AuthAPIError::UnexpectedError(e.into()));
     }
 
     let response = Json(SignupResponse {

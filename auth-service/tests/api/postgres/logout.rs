@@ -17,6 +17,7 @@
 use super::helpers::{get_random_email, TestApp};
 use auth_service::{utils::constants::JWT_COOKIE_NAME, ErrorResponse};
 use reqwest::Url;
+use secrecy::Secret;
 use test_helpers::api_test;
 
 #[api_test]
@@ -47,7 +48,7 @@ async fn should_return_200_if_valid_jwt_cookie() {
 
     assert!(!auth_cookie.value().is_empty());
 
-    let token = auth_cookie.value();
+    let token = Secret::new(auth_cookie.value().to_owned());
     let response = app.logout().await;
     assert_eq!(response.status().as_u16(), 200);
 
@@ -59,7 +60,7 @@ async fn should_return_200_if_valid_jwt_cookie() {
 
     let banned_token_store = app.banned_token_store.read().await;
     let contains_token = banned_token_store
-        .contains_token(token)
+        .contains_token(&token)
         .await
         .expect("failed to check if token is banned");
     assert!(contains_token);

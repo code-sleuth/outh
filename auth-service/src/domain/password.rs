@@ -14,31 +14,35 @@
    limitations under the License.
 */
 
-use validator::Validate;
+use color_eyre::eyre::{eyre, Result};
+use secrecy::{ExposeSecret, Secret};
 
-use serde::Deserialize;
+#[derive(Debug, Clone)]
+pub struct Password(Secret<String>);
 
-#[derive(Debug, Eq, Hash, Clone, PartialEq, Validate, Deserialize)]
-pub struct Password {
-    #[validate(length(min = 8))]
-    pub password: String,
+impl PartialEq for Password {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.expose_secret() == other.0.expose_secret()
+    }
 }
 
 impl Password {
-    pub fn parse(s: String) -> Result<Password, String> {
-        let candidate = Password {
-            password: s.clone(),
-        };
-        match candidate.validate() {
-            Ok(_) => Ok(candidate),
-            Err(e) => Err(format!("{} password validation failed. [{}]", s, e)),
+    pub fn parse(s: Secret<String>) -> Result<Password> {
+        if validate_password(&s) {
+            Ok(Self(s))
+        } else {
+            Err(eyre!("Failed to parse string to a Password type"))
         }
     }
 }
 
-impl AsRef<str> for Password {
-    fn as_ref(&self) -> &str {
-        &self.password
+fn validate_password(s: &Secret<String>) -> bool {
+    s.expose_secret().len() >= 8
+}
+
+impl AsRef<Secret<String>> for Password {
+    fn as_ref(&self) -> &Secret<String> {
+        &self.0
     }
 }
 
@@ -47,32 +51,33 @@ mod tests {
     use super::Password;
     use fake::{faker::internet::en::Password as FakePassword, Fake};
     use rand;
+    use secrecy::Secret;
 
     #[test]
     fn reject_empty_string() {
-        let password = "".to_owned();
+        let password = Secret::new("".to_string());
         assert!(Password::parse(password).is_err());
     }
 
     #[test]
     fn reject_string_less_than_8_characters() {
-        let password = "123456".to_owned();
+        let password = Secret::new("123456".to_owned());
         assert!(Password::parse(password).is_err());
     }
 
     #[derive(Debug, Clone)]
-    struct ValidatePassword(pub String);
+    struct ValidPasswordFixture(pub Secret<String>);
 
-    impl quickcheck::Arbitrary for ValidatePassword {
+    impl quickcheck::Arbitrary for ValidPasswordFixture {
         fn arbitrary(_g: &mut quickcheck::Gen) -> Self {
             let mut rng = rand::thread_rng();
             let password = FakePassword(8..28).fake_with_rng(&mut rng);
-            Self(password)
+            Self(Secret::new(password))
         }
     }
 
     #[quickcheck_macros::quickcheck]
-    fn successfully_parse_valid_passwords(validate_password: ValidatePassword) -> bool {
+    fn successfully_parse_valid_passwords(validate_password: ValidPasswordFixture) -> bool {
         Password::parse(validate_password.0).is_ok()
     }
 }
