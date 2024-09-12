@@ -28,16 +28,16 @@ use auth_service::{
     },
     Application,
 };
+use axum::http::{Method, Uri};
+use color_eyre;
 use http::Request as HttpRequest;
 use lambda_http::{run, service_fn, Body, Error, Request, Response};
 use reqwest::Client;
 use secrecy::Secret;
+use std::str::FromStr;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tower::ServiceExt;
-use axum::http::{Method, Uri};
-use std::str::FromStr;
-use color_eyre::eyre::Result;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
