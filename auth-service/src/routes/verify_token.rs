@@ -14,6 +14,7 @@
    limitations under the License.
 */
 use axum::{extract::State, http::StatusCode, Json};
+use secrecy::Secret;
 use serde::Deserialize;
 
 use crate::{app_state::AppState, domain::AuthAPIError, utils::auth::validate_token};
@@ -30,5 +31,5 @@ pub async fn verify_token(
 
 #[derive(Debug, Deserialize)]
 pub struct VerifyTokenRequest {
-    token: String,
+    token: Secret<String>,
 }

@@ -14,27 +14,44 @@
    limitations under the License.
 */
 
-use validator::Validate;
+use color_eyre::eyre::{eyre, Result};
+use secrecy::{ExposeSecret, Secret};
+use std::hash::Hash;
+use validator::ValidateEmail;
 
-#[derive(Debug, Clone, PartialEq, Hash, Eq, Validate)]
-pub struct Email {
-    #[validate(email)]
-    pub email: String,
+#[derive(Debug, Clone)]
+pub struct Email(Secret<String>);
+
+impl PartialEq for Email {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.expose_secret() == other.0.expose_secret()
+    }
 }
 
+impl Hash for Email {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.0.expose_secret().hash(state);
+    }
+}
+
+impl Eq for Email {}
+
 impl Email {
-    pub fn parse(s: String) -> Result<Email, String> {
-        let candidate = Email { email: s.clone() };
-        match candidate.validate() {
-            Ok(_) => Ok(candidate),
-            Err(e) => Err(format!("{} is not a valid email address. [{}]", s, e)),
+    pub fn parse(s: Secret<String>) -> Result<Email> {
+        if ValidateEmail::validate_email(s.expose_secret()) {
+            Ok(Self(s))
+        } else {
+            Err(eyre!(format!(
+                "{} is not a valid email.",
+                s.expose_secret()
+            )))
         }
     }
 }
 
-impl AsRef<str> for Email {
-    fn as_ref(&self) -> &str {
-        &self.email
+impl AsRef<Secret<String>> for Email {
+    fn as_ref(&self) -> &Secret<String> {
+        &self.0
     }
 }
 
@@ -43,22 +60,23 @@ mod tests {
     use super::Email;
     use fake::{faker::internet::en::SafeEmail, Fake};
     use rand;
+    use secrecy::Secret;
 
     #[test]
     fn reject_empty_string() {
-        let email = "".to_owned();
+        let email = Secret::new("".to_string());
         assert!(Email::parse(email).is_err());
     }
 
     #[test]
     fn reject_email_missing_at_symbol() {
-        let email = "u.org".to_owned();
+        let email = Secret::new("u.org".to_string());
         assert!(Email::parse(email).is_err());
     }
 
     #[test]
     fn reject_email_missing_subject() {
-        let email = "@me.org".to_owned();
+        let email = Secret::new("@me.org".to_string());
         assert!(Email::parse(email).is_err());
     }
 
@@ -75,6 +93,6 @@ mod tests {
 
     #[quickcheck_macros::quickcheck]
     fn successfully_parse_valid_emails(valid_email: ValidEmail) -> bool {
-        Email::parse(valid_email.0).is_ok()
+        Email::parse(Secret::new(valid_email.0)).is_ok()
     }
 }
