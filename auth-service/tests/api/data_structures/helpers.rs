@@ -17,14 +17,17 @@
 use auth_service::Application;
 use auth_service::{
     app_state::{AppState, BannedTokenStoreType, TwoFACodeStoreType},
+    domain::Email,
     services::data_stores::{HashmapTwoFACodeStore, HashmapUserStore, HashsetBannedTokenStore},
-    services::mock_email_client::MockEmailClient,
+    services::postmark_email_client::PostmarkEmailClient,
     utils::constants::test,
 };
-use reqwest::cookie::Jar;
+use reqwest::{cookie::Jar, Client};
+use secrecy::Secret;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
+use wiremock::MockServer;
 
 pub struct TestApp {
     pub address: String,
@@ -32,6 +35,7 @@ pub struct TestApp {
     pub cookie_jar: Arc<Jar>,
     pub banned_token_store: BannedTokenStoreType,
     pub two_fa_code_store: TwoFACodeStoreType,
+    pub email_server: MockServer,
 }
 
 impl TestApp {
@@ -39,7 +43,9 @@ impl TestApp {
         let user_store = Arc::new(RwLock::new(HashmapUserStore::default()));
         let banned_token_store = Arc::new(RwLock::new(HashsetBannedTokenStore::default()));
         let two_fa_code_store = Arc::new(RwLock::new(HashmapTwoFACodeStore::default()));
-        let email_client = Arc::new(MockEmailClient);
+        let email_server = MockServer::start().await;
+        let base_url = email_server.uri();
+        let email_client = Arc::new(configure_postmark_email_client(base_url));
         let app_state = AppState::new(
             user_store,
             banned_token_store.clone(),
@@ -68,6 +74,7 @@ impl TestApp {
             cookie_jar,
             banned_token_store,
             two_fa_code_store,
+            email_server,
         }
     }
 
@@ -138,4 +145,17 @@ impl TestApp {
 
 pub fn get_random_email() -> String {
     format!("{}@umbrella.corp", Uuid::new_v4())
+}
+
+fn configure_postmark_email_client(base_url: String) -> PostmarkEmailClient {
+    let postmark_auth_token = Secret::new("auth_token".to_owned());
+
+    let sender = Email::parse(Secret::new(test::email_client::SENDER.to_owned())).unwrap();
+
+    let http_client = Client::builder()
+        .timeout(test::email_client::TIMEOUT)
+        .build()
+        .expect("Failed to build HTTP client");
+
+    PostmarkEmailClient::new(base_url, sender, postmark_auth_token, http_client)
 }
