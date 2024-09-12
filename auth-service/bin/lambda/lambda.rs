@@ -35,9 +35,9 @@ use secrecy::Secret;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tower::ServiceExt;
-
 use axum::http::{Method, Uri};
 use std::str::FromStr;
+use color_eyre::eyre::Result;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
