@@ -29,7 +29,6 @@ use auth_service::{
     Application,
 };
 use axum::http::{Method, Uri};
-use color_eyre;
 use http::Request as HttpRequest;
 use lambda_http::{run, service_fn, Body, Error, Request, Response};
 use reqwest::Client;
@@ -45,8 +44,6 @@ async fn main() -> Result<(), Error> {
 }
 
 async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
-    color_eyre::install().expect("Failed to install color_eyre");
-    init_tracing().expect("Failed to initialize tracing");
     // init app state
     let user_store = Arc::new(RwLock::new(HashmapUserStore::default()));
     let banned_token_store = Arc::new(RwLock::new(HashsetBannedTokenStore::default()));
