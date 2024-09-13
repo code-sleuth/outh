@@ -22,10 +22,7 @@ use auth_service::{
         //mock_email_client::MockEmailClient,
         postmark_email_client::PostmarkEmailClient,
     },
-    utils::{
-        constants::{prod, POSTMARK_AUTH_TOKEN},
-        tracing::init_tracing,
-    },
+    utils::constants::{prod, POSTMARK_AUTH_TOKEN},
     Application,
 };
 use axum::http::{Method, Uri};
@@ -79,6 +76,7 @@ async fn handle_lambda_event(app: Application, event: Request) -> Result<Respons
 
     let http_request = HttpRequest::builder()
         .uri(uri)
+        .header("Content-Type".to_owned(), "application/json".to_owned())
         .method(method)
         .body(http_body)
         .unwrap();
