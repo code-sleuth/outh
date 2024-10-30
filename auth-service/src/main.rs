@@ -16,8 +16,8 @@
 
 use auth_service::{
     app_state::AppState,
-    get_postgres_pool, get_redis_client,
     domain::Email,
+    get_postgres_pool, get_redis_client,
     services::{
         data_stores::{
             // HashmapTwoFACodeStore, HashmapUserStore, HashsetBannedTokenStore,
@@ -34,6 +34,7 @@ use auth_service::{
     },
     Application,
 };
+use color_eyre;
 use reqwest::Client;
 use secrecy::Secret;
 use sqlx::PgPool;

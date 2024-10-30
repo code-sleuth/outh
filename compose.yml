@@ -29,10 +29,13 @@ services:
     restart: "always" # automatically restart container when server crashes
     environment:
       JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: "postgres://postgres:notSoSecret@postgres:5432"
+      POSTMARK_AUTH_TOKEN: ${POSTMARK_AUTH_TOKEN}
     ports:
       - "42069:42069" # expose port 42069 so that applications outside the container can connect to it
     depends_on:
       - postgres
+      - redis
   postgres:
     image: postgres:16.4-alpine
     container_name: postgres

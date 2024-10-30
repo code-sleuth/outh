@@ -22,22 +22,18 @@ use auth_service::{
         //mock_email_client::MockEmailClient,
         postmark_email_client::PostmarkEmailClient,
     },
-    utils::{
-        constants::{prod, POSTMARK_AUTH_TOKEN},
-        tracing::init_tracing,
-    },
+    utils::constants::{prod, POSTMARK_AUTH_TOKEN},
     Application,
 };
+use axum::http::{Method, Uri};
 use http::Request as HttpRequest;
 use lambda_http::{run, service_fn, Body, Error, Request, Response};
 use reqwest::Client;
 use secrecy::Secret;
+use std::str::FromStr;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tower::ServiceExt;
-
-use axum::http::{Method, Uri};
-use std::str::FromStr;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -45,8 +41,6 @@ async fn main() -> Result<(), Error> {
 }
 
 async fn function_handler(event: Request) -> Result<Response<Body>, Error> {
-    color_eyre::install().expect("Failed to install color_eyre");
-    init_tracing().expect("Failed to initialize tracing");
     // init app state
     let user_store = Arc::new(RwLock::new(HashmapUserStore::default()));
     let banned_token_store = Arc::new(RwLock::new(HashsetBannedTokenStore::default()));
@@ -82,6 +76,7 @@ async fn handle_lambda_event(app: Application, event: Request) -> Result<Respons
 
     let http_request = HttpRequest::builder()
         .uri(uri)
+        .header("Content-Type".to_owned(), "application/json".to_owned())
         .method(method)
         .body(http_body)
         .unwrap();

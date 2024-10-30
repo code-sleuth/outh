@@ -13,23 +13,34 @@
 #    limitations under the License.
 #
 
-FROM public.ecr.aws/lambda/provided:al2-x86_64 as builder
+# Start with image that has the Rust toolchain installed
+FROM rust:1.77-alpine AS chef
+USER root
+# Add cargo-chef to cache dependencies
+RUN apk add --no-cache musl-dev & cargo install cargo-chef
+WORKDIR /app
 
-RUN yum install -y gcc
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
-
-WORKDIR /usr/src/app
+FROM chef AS planner
 COPY . .
+# Capture info needed to build dependencies
+RUN cargo chef prepare --recipe-path recipe.json
 
-RUN rustup target add x86_64-unknown-linux-gnu
-# ENV CARGO_NET_GIT_FETCH_WITH_CLI=true
+FROM chef AS builder
+COPY --from=planner /app/recipe.json recipe.json
+
+# Build dependencies - this is the caching Docker layer!
+RUN cargo chef cook --release --bin auth-service --recipe-path recipe.json
+
+# Build application
+COPY . .
 ENV SQLX_OFFLINE=true
-RUN cargo build --release --target x86_64-unknown-linux-gnu --bin lambda_binary
+RUN cargo build --release --bin lambda_binary
 
 FROM public.ecr.aws/lambda/provided:al2-x86_64
+WORKDIR /app
 ENV AWS_LAMBDA_FUNCTION_NAME="auth-service"
 ENV JWT_SECRET="notSoSecret"
 ENV REDIS_HOST_NAME=redis
-COPY --from=builder /usr/src/app/target/x86_64-unknown-linux-gnu/release/lambda_binary ${LAMBDA_RUNTIME_DIR}/bootstrap
+COPY --from=builder /app/target/release/lambda_binary ${LAMBDA_RUNTIME_DIR}/bootstrap
+COPY --from=builder /app/assets /app/assets
 CMD ["bootstrap"]
