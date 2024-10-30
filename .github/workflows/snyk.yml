@@ -43,6 +43,6 @@ jobs:
         id: snyk
 
       - name: Run Snyk to check for vulnerabilities
-        run: snyk test --org=${{ secrets.SNYK_ORG }}
+        run: snyk test --org=${{ secrets.SNYK_ORG }} --all-projects
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
