@@ -34,13 +34,13 @@ RUN cargo chef cook --release --bin auth-service --recipe-path recipe.json
 # Build application
 COPY . .
 ENV SQLX_OFFLINE=true
-RUN cargo build --release --target x86_64-unknown-linux-gnu --bin lambda_binary
+RUN cargo build --release --bin lambda_binary
 
 FROM public.ecr.aws/lambda/provided:al2-x86_64
 WORKDIR /app
 ENV AWS_LAMBDA_FUNCTION_NAME="auth-service"
 ENV JWT_SECRET="notSoSecret"
 ENV REDIS_HOST_NAME=redis
-COPY --from=builder /app/target/x86_64-unknown-linux-gnu/release/lambda_binary ${LAMBDA_RUNTIME_DIR}/bootstrap
+COPY --from=builder /app/target/release/lambda_binary ${LAMBDA_RUNTIME_DIR}/bootstrap
 COPY --from=builder /app/assets /app/assets
 CMD ["bootstrap"]

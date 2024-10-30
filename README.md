@@ -1,5 +1,15 @@
 # OUTH Service
 
+## Environment
+Its a prerequisite that these environment variables are set. Set them in your terminal.
+
+```bash
+$ export JWT_SECRET=<your-jwt-secret>
+$ export DATABASE_URL=<example-postgres://postgres:notSoSecret@postgres:5432>
+$ export POSTMARK_AUTH_TOKEN=<your-postmark-auth-token>
+```
+
+
 ## Setup & Build
 ```shell
 make build
