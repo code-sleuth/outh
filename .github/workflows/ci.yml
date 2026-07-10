@@ -135,3 +135,4 @@ jobs:
             *.cache-to=type=gha,mode=max
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          POSTMARK_AUTH_TOKEN: ${{ secrets.POSTMARK_AUTH_TOKEN }}
