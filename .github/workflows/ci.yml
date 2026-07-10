@@ -133,3 +133,5 @@ jobs:
           set: |
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
